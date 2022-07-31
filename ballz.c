@@ -14,6 +14,13 @@ void disp_init(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer)
     must_init(*buffer, "bitmap buffer");
 }
 
+/* Deinitialize the display and the buffer */
+void disp_deinit(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer)
+{
+    al_destroy_bitmap(buffer);
+    al_destroy_display(disp);
+}
+
 /* Check the initialization of a component */
 void must_init(bool teste, const char *description)
 {
@@ -23,6 +30,6 @@ void must_init(bool teste, const char *description)
     exit(1);
 }
 
-void start_init()
+void state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
 {
 }

@@ -6,20 +6,27 @@
 #include <allegro5/allegro_image.h>
 
 /* STATES */
-enum {START, CREATE_MAP, PLAYING, GAME_OVER, ENDGAME} state ;
+    enum {START, CREATE_MAP, PLAYING, GAME_OVER, ENDGAME} state ;
 
 /* DISPLAY */
-#define BUFFER_W 320 
-#define BUFFER_H 240 
+    #define BUFFER_W 320 
+    #define BUFFER_H 240 
 
-#define DISP_SCALE 3
-#define DISP_W (BUFFER_W * DISP_SCALE) 
-#define DISP_H (BUFFER_H * DISP_SCALE) 
+    #define DISP_SCALE 3
+    #define DISP_W (BUFFER_W * DISP_SCALE) 
+    #define DISP_H (BUFFER_H * DISP_SCALE) 
 
 /* API */
-void must_init(bool, const char*);
-void disp_init(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);
+    
+    void state_start(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **, ALLEGRO_EVENT_QUEUE *);
 
-void start_init();
+    /* INIT AND DEINIT FUNCTIONS */
+    void must_init(bool, const char*);
+
+    void disp_init(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);
+    void disp_deinit(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);
+
+
+
 
 #endif

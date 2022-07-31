@@ -18,14 +18,25 @@ int main(void)
     disp_init(&disp, &buffer);
 
 
+    al_register_event_source(queue, al_get_display_event_source(disp));
+    al_register_event_source(queue, al_get_timer_event_source(timer));
+
+    ALLEGRO_EVENT event;
+
+    al_start_timer(timer);
 
     state = START;
     for (;;)
         switch (state)
         {
-            case START: start_init() ;  break ;
+            case START: state_start(&disp, &buffer, queue) ;  break ;
             default: break ;
         }
+
+
+    disp_deinit(&disp, &buffer);
+    al_destroy_timer(timer);
+    al_destroy_event_queue(queue);
 
     return 0;
 }
