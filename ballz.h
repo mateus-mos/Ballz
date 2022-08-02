@@ -2,11 +2,12 @@
 #define __BALLZ__ 
 
 #include <allegro5/allegro5.h>
+#include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_image.h>
 
 /* STATES */
-    enum {START, CREATE_MAP, PLAYING, GAME_OVER, ENDGAME} state ;
+    enum state {START, CREATE_MAP, PLAYING, GAME_OVER, ENDGAME} s_state;
 
 /* DISPLAY */
     #define BUFFER_W 320 
@@ -18,7 +19,8 @@
 
 /* API */
     
-    void state_start(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **, ALLEGRO_EVENT_QUEUE *);
+    enum state state_start(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **, ALLEGRO_EVENT_QUEUE *);
+    void state_endgame(void);
 
     /* INIT AND DEINIT FUNCTIONS */
     void must_init(bool, const char*);

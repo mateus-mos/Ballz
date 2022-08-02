@@ -17,21 +17,27 @@ int main(void)
 
     disp_init(&disp, &buffer);
 
+    must_init(al_init_primitives_addon(), "primitives");
 
     al_register_event_source(queue, al_get_display_event_source(disp));
     al_register_event_source(queue, al_get_timer_event_source(timer));
 
-    ALLEGRO_EVENT event;
+
 
     al_start_timer(timer);
 
-    state = START;
+    s_state = START;
     for (;;)
-        switch (state)
+    {
+        switch (s_state)
         {
-            case START: state_start(&disp, &buffer, queue) ;  break ;
-            default: break ;
+            case START: s_state = state_start(&disp, &buffer, queue);  break;
+            case ENDGAME: state_endgame();  break;
         }
+
+        if(s_state == ENDGAME)
+            break;
+    }
 
 
     disp_deinit(&disp, &buffer);
