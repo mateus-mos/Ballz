@@ -5,6 +5,9 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_ttf.h>
+
+const char FONTS_PATH[100] = "Resources/Fonts";
 
 /* STATES */
     typedef enum {START, CREATE_MAP, PLAYING, GAME_OVER, ENDGAME} State_t;
