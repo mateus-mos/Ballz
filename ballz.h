@@ -7,7 +7,7 @@
 #include <allegro5/allegro_image.h>
 
 /* STATES */
-    enum state {START, CREATE_MAP, PLAYING, GAME_OVER, ENDGAME} s_state;
+    typedef enum {START, CREATE_MAP, PLAYING, GAME_OVER, ENDGAME} State_t;
 
 /* DISPLAY */
     #define BUFFER_W 320 
@@ -19,7 +19,7 @@
 
 /* API */
     
-    enum state state_start(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **, ALLEGRO_EVENT_QUEUE *);
+    State_t state_start(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **, ALLEGRO_EVENT_QUEUE *);
     void state_endgame(void);
 
     /* INIT AND DEINIT FUNCTIONS */
@@ -27,8 +27,5 @@
 
     void disp_init(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);
     void disp_deinit(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);
-
-
-
 
 #endif

@@ -30,7 +30,7 @@ void must_init(bool teste, const char *description)
     exit(1);
 }
 
-enum state state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
+State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
 {
     ALLEGRO_EVENT event;
     bool done = false;
@@ -51,8 +51,6 @@ enum state state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_
 
         if(done)
             return ENDGAME;
-            
-        
     }
 }
 

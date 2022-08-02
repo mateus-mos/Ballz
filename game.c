@@ -26,16 +26,18 @@ int main(void)
 
     al_start_timer(timer);
 
-    s_state = START;
+    State_t game_state;
+
+    game_state = START;
     for (;;)
     {
-        switch (s_state)
+        switch (game_state)
         {
-            case START: s_state = state_start(&disp, &buffer, queue);  break;
+            case START: game_state = state_start(&disp, &buffer, queue);  break;
             case ENDGAME: state_endgame();  break;
         }
 
-        if(s_state == ENDGAME)
+        if(game_state == ENDGAME)
             break;
     }
 
