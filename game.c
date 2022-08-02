@@ -17,7 +17,9 @@ int main(void)
 
     disp_init(&disp, &buffer);
 
+    must_init(al_init_font_addon(), "font");
     must_init(al_init_primitives_addon(), "primitives");
+    must_init(al_init_ttf_addon(), "ttf");
 
     al_register_event_source(queue, al_get_display_event_source(disp));
     al_register_event_source(queue, al_get_timer_event_source(timer));
