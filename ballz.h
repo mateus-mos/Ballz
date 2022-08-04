@@ -7,7 +7,7 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_ttf.h>
 
-#define FONTS_PATH "./Resources/Fonts"
+#define FONTS_PATH "./Resources/Fonts/"
 #define ATARI_CLASSIC_FONT "AtariClassic.ttf"
 /* STATES */
     typedef enum {START, CREATE_MAP, PLAYING, GAME_OVER, ENDGAME} State_t;

@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "ballz.h"
 
 /* PROTOTYPES */
@@ -38,27 +40,34 @@ void disp_post_draw(ALLEGRO_DISPLAY *disp, ALLEGRO_BITMAP *buffer)
 }
 
 /* Check the initialization of a component */
-void must_init(bool teste, const char *description)
+void must_init(bool test, const char *description)
 {
-    if(teste)
+    if(test)
         return;
+
     fprintf(stderr, "[ERROR]: Initialization of [%s] failed!\n", description);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
-char* load_font_path(char *f_path, const char *f_name)
+/* Test if a pointer is NULL, if so exit */
+void test_ptr(bool test, const char *description)
 {
-    if(f_path == NULL || f_name == NULL)
-    {
-        fprintf(stderr, "[ERROR]: Invalid argument in font_path function!\n");
-        exit(1);
-    }
+    if(test)
+        return;
 
-    strcpy(f_path, FONTS_PATH);
-    strcat(f_path, "/");
-    strcat(f_path, f_name);
+    fprintf(stderr, "[ERROR]: [%s] pointer is NULL!\n", description);
+    exit(EXIT_FAILURE);
+}
 
-    return f_path;
+ALLEGRO_FONT* load_font(const char *font_name, int font_size)
+{
+    test_ptr(font_name, "font_name");
+    char font_path_buffer[100];
+
+    strcpy(font_path_buffer, FONTS_PATH);
+    strcat(font_path_buffer, font_name); 
+
+    return al_load_font(font_path_buffer, font_size, 0);
 }
 
 State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
@@ -67,18 +76,15 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
     bool done = false;
     unsigned char key[ALLEGRO_KEY_MAX];
 
-    char font_path[50];
+    ALLEGRO_FONT* font;
+    font = load_font(ATARI_CLASSIC_FONT, 15);
 
-    ALLEGRO_FONT* font_title;
+    test_ptr(font, "font");
 
-    load_font_path(font_path, ATARI_CLASSIC_FONT);
-
-    font_title = al_load_ttf_font(font_path, 20, 0);
-    must_init(font_title, "font_title");
 
     disp_pre_draw(*buffer);
 
-    hud_start_draw(font_title);
+    hud_start_draw(font);
 
     disp_post_draw(*disp, *buffer);
 
