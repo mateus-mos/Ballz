@@ -96,6 +96,9 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
         {
             case ALLEGRO_EVENT_TIMER:
                 break;
+            case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                fprintf(stdout, "[INFO]: Mouse pressed!");
+                break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                 done = true;
                 break;
@@ -115,6 +118,17 @@ void hud_start_draw(ALLEGRO_FONT* font)
         BUFFER_H / 5,
         ALLEGRO_ALIGN_CENTER,
         "Ballz"
+    );
+
+    /* "Divide" the buffer in 12 parts to draw the button */
+    al_draw_filled_rounded_rectangle(
+        BUFFER_W / 12 * 5, 
+        (BUFFER_H / 12) * 6, 
+        (BUFFER_W / 12) * 7, 
+        (BUFFER_H / 12) * 7, 
+        10,
+        10,
+        al_map_rgb_f(1,1,1) 
     );
 }
 
