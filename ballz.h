@@ -8,7 +8,8 @@
 #include <allegro5/allegro_ttf.h>
 
 #define FONTS_PATH "./Resources/Fonts/"
-#define ATARI_CLASSIC_FONT "AtariClassic.ttf"
+#define GREATE_FIGHTER_FONT "GreatFighter-pKK1.ttf"
+#define PRESS_START_FONT "PressStart2P.ttf"
 /* STATES */
     typedef enum {START, CREATE_MAP, PLAYING, GAME_OVER, ENDGAME} State_t;
 

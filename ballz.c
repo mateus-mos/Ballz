@@ -67,7 +67,7 @@ ALLEGRO_FONT* load_font(const char *font_name, int font_size)
     strcpy(font_path_buffer, FONTS_PATH);
     strcat(font_path_buffer, font_name); 
 
-    return al_load_font(font_path_buffer, font_size, 0);
+    return al_load_font(font_path_buffer, font_size, ALLEGRO_TTF_MONOCHROME);
 }
 
 State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
@@ -77,7 +77,7 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
     unsigned char key[ALLEGRO_KEY_MAX];
 
     ALLEGRO_FONT* font;
-    font = load_font(ATARI_CLASSIC_FONT, 15);
+    font = load_font(GREATE_FIGHTER_FONT, 25);
 
     test_ptr(font, "font");
 
@@ -110,7 +110,7 @@ void hud_start_draw(ALLEGRO_FONT* font)
 {
     al_draw_text(
         font,
-        al_map_rgb_f(1, 1, 1),
+        al_map_rgb_f(0.5, 0.5, 1),
         BUFFER_W / 2,
         BUFFER_H / 5,
         ALLEGRO_ALIGN_CENTER,
