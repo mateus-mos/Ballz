@@ -75,6 +75,7 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
     ALLEGRO_EVENT event;
     bool done = false;
     unsigned char key[ALLEGRO_KEY_MAX];
+    ALLEGRO_MOUSE_STATE* mouse_state;
 
     ALLEGRO_FONT* font;
     font = load_font(GREATE_FIGHTER_FONT, 25);
@@ -97,7 +98,8 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
             case ALLEGRO_EVENT_TIMER:
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
-                fprintf(stdout, "[INFO]: Mouse pressed!");
+                al_get_mouse_state_axis(mouse_state, 0);
+                fprintf(stderr, "[INFO]: Mouse pressed! x: %d, y: %d\n", mouse_state->x, mouse_state->y);
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                 done = true;
