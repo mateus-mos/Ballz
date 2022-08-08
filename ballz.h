@@ -10,6 +10,7 @@
 #define FONTS_PATH "./Resources/Fonts/"
 #define GREATE_FIGHTER_FONT "GreatFighter-pKK1.ttf"
 #define PRESS_START_FONT "PressStart2P.ttf"
+
 /* STATES */
     typedef enum {START, CREATE_MAP, PLAYING, GAME_OVER, ENDGAME} State_t;
 
