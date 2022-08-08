@@ -29,6 +29,8 @@
 
     /* INIT AND DEINIT FUNCTIONS */
     void must_init(bool, const char*);
+    void ballz_init(void);
+    void ballz_deinit(void);
 
     void disp_init(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);
     void disp_deinit(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);

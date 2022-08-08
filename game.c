@@ -17,6 +17,7 @@ int main(void)
 
     disp_init(&disp, &buffer);
 
+
     must_init(al_install_mouse(), "install mouse");
     must_init(al_init_font_addon(), "font");
     must_init(al_init_ttf_addon(), "ttf");
@@ -26,6 +27,7 @@ int main(void)
     al_register_event_source(queue, al_get_timer_event_source(timer));
     al_register_event_source(queue, al_get_mouse_event_source());
 
+    ballz_init();
 
 
     al_start_timer(timer);
