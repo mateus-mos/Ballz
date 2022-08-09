@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "ballz.h"
+#include "ballz_playing.h"
 
 int main(void)
 {
@@ -35,16 +36,16 @@ int main(void)
     State_t game_state;
 
     game_state = START;
-    for (;;)
+
+    while(game_state != ENDGAME) 
     {
         switch (game_state)
         {
             case START: game_state = state_start(&disp, &buffer, queue);  break;
-            case ENDGAME: state_endgame();  break;
+            case PLAYING: state_playing(&disp, &buffer, queue); break;
+            default:
+                break;
         }
-
-        if(game_state == ENDGAME)
-            break;
     }
 
 

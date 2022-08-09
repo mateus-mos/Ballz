@@ -9,21 +9,26 @@
 #define START_BUTTON_PLAY_B_X ((BUFFER_W / 12) * 7)
 #define START_BUTTON_PLAY_B_Y ((BUFFER_H / 12) * 7)
 
-#define TITTLE_FONT_SIZE 25
-#define TEXT_FONT_SIZE 15 
+/* STRUCTS */
+typedef struct
+{
+    int x_left;
+    int y_bottom;
+    int x_right;
+    int y_top;
+} Dimension;
 
-ALLEGRO_COLOR g_primaryColor; /* Used for tittles... */
-ALLEGRO_COLOR g_secondaryColor; /* Used for normal text */
-ALLEGRO_COLOR g_buttonsColor;
-
-ALLEGRO_FONT *g_tittleFont;
-ALLEGRO_FONT *g_textFont;
+typedef struct 
+{
+    int x;
+    int y;
+    Dimension box_dimension;
+    ALLEGRO_COLOR box_color;
+} Box;
 
 /* PROTOTYPES */
-ALLEGRO_FONT* load_font(const char *, int);
 void hud_start_draw(ALLEGRO_FONT*, ALLEGRO_FONT*);
 void ballz_color_init(void);
-void test_ptr(bool , const char *);
 
 
 bool ballz_font_init(void)
@@ -153,7 +158,6 @@ bool collide(int a_x1, int a_y1, int a_x2, int a_y2, int b_x1, int b_y1, int b_x
     return true;
 }
 
-
 bool play_button_clicked(ALLEGRO_MOUSE_STATE *mouse_state)
 {
     return collide
@@ -170,53 +174,6 @@ bool play_button_clicked(ALLEGRO_MOUSE_STATE *mouse_state)
         START_BUTTON_PLAY_B_Y * DISP_SCALE
     );
 }
-
-State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
-{
-    bool done = false;
-    State_t state = START;
-    ALLEGRO_EVENT event;
-    ALLEGRO_MOUSE_STATE mouse_state;
-    unsigned char key[ALLEGRO_KEY_MAX];
-
-
-    while(state == START)
-    {
-
-        al_wait_for_event(queue, &event);
-
-
-        switch (event.type)
-        {
-            case ALLEGRO_EVENT_TIMER:
-                    disp_pre_draw(*buffer);
-                    al_clear_to_color(al_map_rgb(0,0,0));
-
-                    hud_start_draw(g_tittleFont, g_textFont);
-
-                    disp_post_draw(*disp, *buffer);
-                break;
-            case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
-                    al_get_mouse_state(&mouse_state);
-
-                    if(play_button_clicked(&mouse_state))
-                    {
-                        fprintf(stderr, "[INFO]: Button 'Play' pressed! \n");
-                        fprintf(stderr, "[INFO]: Change state to PLAY! \n");
-                        //state = PLAY;
-                    }
-
-                    fprintf(stderr, "[INFO]: Mouse pressed! x: %d, y: %d\n", mouse_state.x, mouse_state.y);
-                break;
-            case ALLEGRO_EVENT_DISPLAY_CLOSE:
-                    state = ENDGAME;
-                break;
-        }
-    }
-
-    return state;
-}
-
 
 void hud_start_draw(ALLEGRO_FONT* g_tittleFont, ALLEGRO_FONT* g_textFont)
 {
@@ -275,6 +232,47 @@ void hud_start_draw(ALLEGRO_FONT* g_tittleFont, ALLEGRO_FONT* g_textFont)
     );
 }
 
+State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
+{
+    State_t state = START;
+    ALLEGRO_EVENT event;
+    ALLEGRO_MOUSE_STATE mouse_state;
+
+    while(state == START)
+    {
+
+        al_wait_for_event(queue, &event);
+
+        switch (event.type)
+        {
+            case ALLEGRO_EVENT_TIMER:
+                    disp_pre_draw(*buffer);
+                    al_clear_to_color(al_map_rgb(0,0,0));
+
+                    hud_start_draw(g_tittleFont, g_textFont);
+
+                    disp_post_draw(*disp, *buffer);
+                break;
+            case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                    al_get_mouse_state(&mouse_state);
+
+                    if(play_button_clicked(&mouse_state))
+                    {
+                        fprintf(stderr, "[INFO]: Button 'Play' pressed! \n");
+                        fprintf(stderr, "[INFO]: Change state to PLAY! \n");
+                        //state = PLAY;
+                    }
+
+                    fprintf(stderr, "[INFO]: Mouse pressed! x: %d, y: %d\n", mouse_state.x, mouse_state.y);
+                break;
+            case ALLEGRO_EVENT_DISPLAY_CLOSE:
+                    state = ENDGAME;
+                break;
+        }
+    }
+
+    return state;
+}
 
 void state_endgame()
 {}
