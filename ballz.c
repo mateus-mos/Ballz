@@ -9,56 +9,16 @@
 #define START_BUTTON_PLAY_B_X ((BUFFER_W / 12) * 7)
 #define START_BUTTON_PLAY_B_Y ((BUFFER_H / 12) * 7)
 
-/* STRUCTS */
-typedef struct
-{
-    int x_left;
-    int y_bottom;
-    int x_right;
-    int y_top;
-} Dimension;
-
-typedef struct 
-{
-    int x;
-    int y;
-    Dimension box_dimension;
-    ALLEGRO_COLOR box_color;
-} Box;
-
 /* PROTOTYPES */
 void hud_start_draw(ALLEGRO_FONT*, ALLEGRO_FONT*);
-void ballz_color_init(void);
-
-
-bool ballz_font_init(void)
-{
-    g_tittleFont = load_font(GREATE_FIGHTER_FONT, TITTLE_FONT_SIZE);
-    test_ptr(g_tittleFont, "g_tittleFont");
-
-    g_textFont = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
-    test_ptr(g_textFont, "g_textFont");
-
-    return true;
-};
-
-void ballz_font_deinit(void)
-{
-    al_destroy_font(g_tittleFont);
-    al_destroy_font(g_textFont);
-}
 
 void ballz_init(void)
 {
     srand(time(NULL));
-
-    must_init(ballz_font_init(), "ballz font");
-    ballz_color_init();
 }
 
 void ballz_deinit(void)
 {
-    ballz_font_deinit();
 }
 
 /* Initialize the display and the buffer */
@@ -114,25 +74,6 @@ void test_ptr(bool test, const char *description)
     exit(EXIT_FAILURE);
 }
 
-/* Initialize colors, dont need a deinit function */
-void ballz_color_init(void)
-{
-    g_primaryColor.r = (float)(242)/(float)(255);
-    g_primaryColor.g = (float)(226)/(float)(255);
-    g_primaryColor.b = (float)(5)/(float)(255);
-    g_primaryColor.a = 1;
-
-    g_secondaryColor.r = (float)(242)/(float)(255);
-    g_secondaryColor.g = (float)(5)/(float)(255);
-    g_secondaryColor.b = (float)(203)/(float)(255);
-    g_secondaryColor.a = 1;
-
-    g_buttonsColor.r = 1;
-    g_buttonsColor.g = 0;
-    g_buttonsColor.b = (float)(116)/(float)(255);
-    g_buttonsColor.a = 1;
-}
-
 ALLEGRO_FONT* load_font(const char *font_name, int font_size)
 {
     test_ptr(font_name, "font_name");
@@ -175,13 +116,13 @@ bool play_button_clicked(ALLEGRO_MOUSE_STATE *mouse_state)
     );
 }
 
-void hud_start_draw(ALLEGRO_FONT* g_tittleFont, ALLEGRO_FONT* g_textFont)
+void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font)
 {
 
     /* Shadow Tittle */
     al_draw_text(
-        g_tittleFont,
-        g_secondaryColor,
+        tittle_font,
+        SECONDARY_COLOR,
         BUFFER_W / 2 + BUFFER_W/90, 
         BUFFER_H / 5,
         ALLEGRO_ALIGN_CENTER,
@@ -190,8 +131,8 @@ void hud_start_draw(ALLEGRO_FONT* g_tittleFont, ALLEGRO_FONT* g_textFont)
 
     /* Tittle */
     al_draw_text(
-        g_tittleFont,
-        g_primaryColor,
+        tittle_font,
+        PRIMARY_COLOR,
         BUFFER_W / 2,
         BUFFER_H / 5,
         ALLEGRO_ALIGN_CENTER,
@@ -206,7 +147,7 @@ void hud_start_draw(ALLEGRO_FONT* g_tittleFont, ALLEGRO_FONT* g_textFont)
         START_BUTTON_PLAY_B_Y + START_BUTTON_PLAY_B_Y/90,
         10,
         10,
-        g_secondaryColor 
+        SECONDARY_COLOR 
     );
     
     /* Play button */
@@ -217,13 +158,13 @@ void hud_start_draw(ALLEGRO_FONT* g_tittleFont, ALLEGRO_FONT* g_textFont)
         START_BUTTON_PLAY_B_Y,
         10,
         10,
-        g_primaryColor 
+        PRIMARY_COLOR 
     );
 
     /* Play button g_textFont */
     al_draw_text(
-        g_textFont,
-        g_secondaryColor, 
+        text_font,
+        SECONDARY_COLOR, 
         /* Define position of the g_textFont based on the start button */
         START_BUTTON_PLAY_A_X + (START_BUTTON_PLAY_B_X - START_BUTTON_PLAY_A_X)/2,
         START_BUTTON_PLAY_A_Y + (START_BUTTON_PLAY_B_Y - START_BUTTON_PLAY_A_Y)/6,
@@ -237,6 +178,14 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
     State_t state = START;
     ALLEGRO_EVENT event;
     ALLEGRO_MOUSE_STATE mouse_state;
+    ALLEGRO_FONT * tittle_font;
+    ALLEGRO_FONT * text_font;
+
+    tittle_font = load_font(GREATE_FIGHTER_FONT, TITTLE_FONT_SIZE);
+    test_ptr(tittle_font, "tittle_font");
+
+    text_font = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
+    test_ptr(text_font, "text_font");
 
     while(state == START)
     {
@@ -249,7 +198,7 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
                     disp_pre_draw(*buffer);
                     al_clear_to_color(al_map_rgb(0,0,0));
 
-                    hud_start_draw(g_tittleFont, g_textFont);
+                    hud_start_draw(tittle_font, text_font);
 
                     disp_post_draw(*disp, *buffer);
                 break;
@@ -271,6 +220,8 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
         }
     }
 
+    al_destroy_font(tittle_font);
+    al_destroy_font(text_font);
     return state;
 }
 

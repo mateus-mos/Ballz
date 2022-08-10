@@ -1,4 +1,5 @@
 #include <stdlib.h>
+
 #include "ballz.h"
 #include "ballz_playing.h"
 

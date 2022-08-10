@@ -7,6 +7,7 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_ttf.h>
 
+#define PIXEL(r,g,b) (al_map_rgb((unsigned char) r, (unsigned char) g, (unsigned char) b))
 #define FONTS_PATH "./Resources/Fonts/"
 #define GREATE_FIGHTER_FONT "GreatFighter-pKK1.ttf"
 #define PRESS_START_FONT "PressStart2P.ttf"
@@ -34,6 +35,13 @@
 
     void disp_init(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);
     void disp_deinit(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);
+    void disp_pre_draw(ALLEGRO_BITMAP *);
+    void disp_post_draw(ALLEGRO_DISPLAY *, ALLEGRO_BITMAP *);
+
+
+    void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font);
+
+
 
     void must_init(bool, const char *);
     void test_ptr(bool , const char *);
@@ -43,11 +51,6 @@
     #define TITTLE_FONT_SIZE 25
     #define TEXT_FONT_SIZE 15 
 
-    ALLEGRO_COLOR g_primaryColor; /* Used for tittles... */
-    ALLEGRO_COLOR g_secondaryColor; /* Used for normal text */
-    ALLEGRO_COLOR g_buttonsColor;
-
-    ALLEGRO_FONT *g_tittleFont;
-    ALLEGRO_FONT *g_textFont;
-
+    #define PRIMARY_COLOR                   PIXEL(242, 226, 5)
+    #define SECONDARY_COLOR                 PIXEL(242, 5, 203)
 #endif
