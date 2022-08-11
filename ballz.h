@@ -10,7 +10,6 @@
 #define PIXEL(r,g,b) (al_map_rgb((unsigned char) r, (unsigned char) g, (unsigned char) b))
 #define FONTS_PATH "./Resources/Fonts/"
 #define GREATE_FIGHTER_FONT "GreatFighter-pKK1.ttf"
-#define PRESS_START_FONT "PressStart2P.ttf"
 
 /* STATES */
     typedef enum {START, PLAYING, GAME_OVER, ENDGAME} State_t;

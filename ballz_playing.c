@@ -11,6 +11,8 @@ typedef struct
     int y_bottom;
     int x_right;
     int y_top;
+    float rx;
+    float ry;
 } Dimension;
 
 typedef struct 
@@ -21,9 +23,55 @@ typedef struct
     ALLEGRO_COLOR box_color;
 } Box;
 
+typedef struct 
+{
+    int x;
+    int y;
+    Dimension ball_dimension;
+    ALLEGRO_COLOR ball_color;
+} Ball;
+
+/* Array of Ball */
+typedef struct
+{
+    int num_balls;
+    int num_balls_allocated;
+    Ball *a_ball;
+} Balls;
+
+Balls *create_balls_array(int size)
+{
+    Balls *p_balls;
+    Ball *a_ball;
+
+    p_balls = malloc(sizeof(Ball));
+    test_ptr(p_balls, "p_balls");
+
+    a_ball = malloc(sizeof(Ball) * size);
+    test_ptr(a_ball, "a_ball");
+
+    p_balls->num_balls = 0;
+    p_balls->num_balls_allocated = size;
+    p_balls->a_ball = a_ball;
+
+    return p_balls;
+}
+
+void *destroy_balls_array(Balls *p_balls)
+{
+    test_ptr(p_balls, "p_balls in destroy_balls_array");
+
+    free(p_balls->a_ball);
+    free(p_balls);
+}
+
+int insert_ball(Balls *p_balls)
+{
+}
+
 State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
 {
-    State_t state = START;
+    State_t state = PLAYING;
     ALLEGRO_EVENT event;
     ALLEGRO_MOUSE_STATE mouse_state;
     ALLEGRO_FONT * tittle_font;
@@ -35,7 +83,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     text_font = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
     test_ptr(text_font, "text_font");
 
-    while(state == START)
+    while(state == PLAYING)
     {
 
         al_wait_for_event(queue, &event);
