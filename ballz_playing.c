@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "ballz_playing.h"
 
+
 /* STRUCTS */
-typedef struct
+typedef struct 
 {
     int x_left;
     int y_bottom;
@@ -13,21 +13,16 @@ typedef struct
     int y_top;
     float rx;
     float ry;
-} Dimension;
-
-typedef struct 
-{
-    int x;
-    int y;
-    Dimension box_dimension;
+    Dimension b_dimension;
     ALLEGRO_COLOR box_color;
 } Box;
 
 typedef struct 
 {
-    int x;
-    int y;
-    Dimension ball_dimension;
+    float x;
+    float y;
+    float r;
+    Ball_Dimension b_dimension;
     ALLEGRO_COLOR ball_color;
 } Ball;
 
@@ -45,10 +40,10 @@ Balls *create_balls_array(int size)
     Ball *a_ball;
 
     p_balls = malloc(sizeof(Ball));
-    test_ptr(p_balls, "p_balls");
+    test_ptr(p_balls, "p_balls", "create_balls_array");
 
     a_ball = malloc(sizeof(Ball) * size);
-    test_ptr(a_ball, "a_ball");
+    test_ptr(a_ball, "a_ball", "create_balls_array");
 
     p_balls->num_balls = 0;
     p_balls->num_balls_allocated = size;
@@ -59,14 +54,43 @@ Balls *create_balls_array(int size)
 
 void *destroy_balls_array(Balls *p_balls)
 {
-    test_ptr(p_balls, "p_balls in destroy_balls_array");
+    test_ptr(p_balls, "p_balls", "destroy_balls_array");
 
     free(p_balls->a_ball);
     free(p_balls);
 }
 
-int insert_ball(Balls *p_balls)
+
+Balls *reallocate_balls(Balls *p_balls, int n_balls)
 {
+    Balls *n_balls;
+
+    test_ptr(p_balls, "p_balls", "reallocate_balls");
+    test_ptr(p_balls->a_ball, "p_balls->a_balls", "reallocate_balls");
+
+    n_balls = realloc(p_balls->a_ball, sizeof(Ball) * n_balls); 
+    test_ptr(n_balls, "n_balls", "reallocate_balls");
+
+    return n_balls;
+}
+
+void insert_ball(Balls *p_balls, int x, int y)
+{
+    test_ptr(p_balls, "p_balls", "insert_ball");
+    test_ptr(p_balls->a_ball, "p_balls->a_balls", "insert_ball");
+
+    if(p_balls->num_balls == p_balls->num_balls_allocated)
+    {
+        fprintf(stderr, "[ERROR]: No space to insert a new ball in the Balls vector!");
+        exit(1);
+    }
+
+    p_balls->a_ball[p_balls->num_balls].ball_color = BALL_COLOR;
+    p_balls->a_ball[p_balls->num_balls].r = 2;
+    p_balls->a_ball[p_balls->num_balls].x = x;
+    p_balls->a_ball[p_balls->num_balls].y = y;
+
+    p_balls->num_balls++;
 }
 
 State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
@@ -78,10 +102,10 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     ALLEGRO_FONT * text_font;
 
     tittle_font = load_font(GREATE_FIGHTER_FONT, TITTLE_FONT_SIZE);
-    test_ptr(tittle_font, "tittle_font");
+    test_ptr(tittle_font, "tittle_font", "state_playing");
 
     text_font = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
-    test_ptr(text_font, "text_font");
+    test_ptr(text_font, "text_font", "state_playing");
 
     while(state == PLAYING)
     {

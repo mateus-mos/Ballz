@@ -8,6 +8,7 @@
 #include <allegro5/allegro_ttf.h>
 
 #define PIXEL(r,g,b) (al_map_rgb((unsigned char) r, (unsigned char) g, (unsigned char) b))
+
 #define FONTS_PATH "./Resources/Fonts/"
 #define GREATE_FIGHTER_FONT "GreatFighter-pKK1.ttf"
 
@@ -37,13 +38,10 @@
     void disp_pre_draw(ALLEGRO_BITMAP *);
     void disp_post_draw(ALLEGRO_DISPLAY *, ALLEGRO_BITMAP *);
 
-
     void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font);
 
-
-
     void must_init(bool, const char *);
-    void test_ptr(bool , const char *);
+    void test_ptr(bool , const char *, const char *);
     ALLEGRO_FONT* load_font(const char *, int);
 
 /* OTHERS */
@@ -52,4 +50,6 @@
 
     #define PRIMARY_COLOR                   PIXEL(242, 226, 5)
     #define SECONDARY_COLOR                 PIXEL(242, 5, 203)
+    #define BALL_COLOR                      PIXEL(3, 5, 145)
+
 #endif
