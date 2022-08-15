@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ARRAY_BALLS_SIZE 100
 
 /* STRUCTS */
 typedef struct
@@ -29,6 +30,8 @@ typedef struct
     int x;
     int y;
     int r;
+    float x_vel;
+    float y_vel;
     ALLEGRO_COLOR ball_color;
 } Ball;
 
@@ -66,13 +69,15 @@ void destroy_balls_array(Balls *p_balls)
     free(p_balls);
 }
 
-void insert_ball(Balls *p_balls, int x, int y, int r, ALLEGRO_COLOR ball_color)
+void insert_ball(Balls *p_balls, int x, int y, int r, float x_vel, float y_vel, ALLEGRO_COLOR ball_color)
 {
     test_ptr(p_balls, "p_balls in insert_ball");
 
     p_balls->a_ball[p_balls->num_balls].x = x;
     p_balls->a_ball[p_balls->num_balls].y = y;
     p_balls->a_ball[p_balls->num_balls].r = r;
+    p_balls->a_ball[p_balls->num_balls].x_vel = x_vel;
+    p_balls->a_ball[p_balls->num_balls].y_vel = y_vel;
     p_balls->a_ball[p_balls->num_balls].ball_color = ball_color;
 
    p_balls->num_balls++;
@@ -96,6 +101,9 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     text_font = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
     test_ptr(text_font, "text_font");
 
+    Balls *balls_array = create_balls_array(ARRAY_BALLS_SIZE);
+    test_ptr(balls_array, "balls_array");
+
     while(state == PLAYING)
     {
 
@@ -113,6 +121,8 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
                     al_get_mouse_state(&mouse_state);
+
+                    insert_ball(balls_array, 0, 0, 0.5, 0.5, 2, BALL_COLOR);
 
                     //if(play_button_clicked(&mouse_state))
                     //{
