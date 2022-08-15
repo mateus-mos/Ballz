@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ballz.h"
+#include "log.h"
 
 /* Position of the button "Play" in the hud of the state START */
 #define START_BUTTON_PLAY_A_X (BUFFER_W / 12 * 5)
@@ -70,7 +71,7 @@ void test_ptr(bool test, const char *description, const char *function_name)
     if(test)
         return;
 
-    fprintf(stderr, "[ERROR]: [%s] pointer is NULL in the function [%d]!\n", description, function_name);
+    fprintf(stderr, "[ERROR]: [%s] pointer is NULL in the function [%s]!\n", description, function_name);
     exit(EXIT_FAILURE);
 }
 

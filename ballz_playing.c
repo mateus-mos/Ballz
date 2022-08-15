@@ -15,7 +15,6 @@ typedef struct
     int y_top;
     float rx;
     float ry;
-    Dimension b_dimension;
     ALLEGRO_COLOR box_color;
 } Box;
 
@@ -65,15 +64,15 @@ void destroy_balls_array(Balls *p_balls)
 
 Balls *reallocate_balls(Balls *p_balls, int n_balls)
 {
-    Balls *n_balls;
+    Balls *n_p_balls;
 
     test_ptr(p_balls, "p_balls", "reallocate_balls");
     test_ptr(p_balls->a_ball, "p_balls->a_balls", "reallocate_balls");
 
-    n_balls = realloc(p_balls->a_ball, sizeof(Ball) * n_balls); 
-    test_ptr(n_balls, "n_balls", "reallocate_balls");
+    n_p_balls = realloc(p_balls->a_ball, sizeof(Ball) * n_balls); 
+    test_ptr(n_p_balls, "n_p_balls", "reallocate_balls");
 
-    return n_balls;
+    return n_p_balls;
 }
 
 void insert_ball(Balls *p_balls, int x, int y, int r, float x_vel, float y_vel, ALLEGRO_COLOR ball_color)
@@ -116,7 +115,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     test_ptr(text_font, "text_font", "state_playing");
 
     Balls *balls_array = create_balls_array(ARRAY_BALLS_SIZE);
-    test_ptr(balls_array, "balls_array");
+    test_ptr(balls_array, "balls_array", "state_playing");
 
     while(state == PLAYING)
     {
