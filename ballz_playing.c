@@ -58,6 +58,7 @@ void destroy_balls_array(Balls *p_balls)
 {
     test_ptr(p_balls, "p_balls", "destroy_balls_array");
 
+    /* Destroy colors of the balls */
     free(p_balls->a_ball);
     free(p_balls);
 }
@@ -100,6 +101,26 @@ void insert_ball(Balls *p_balls, int x, int y, int r, float x_vel, float y_vel, 
     #endif
 }
 
+void update_balls(Balls *p_balls)
+{
+    test_ptr(p_balls, "p_balls", "update_balls");
+
+    for(int i = 0; i < p_balls->num_balls; i++)
+    {
+        p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel; 
+        p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel; 
+        /* Test collide with wall or map */
+    }
+}
+
+void draw_balls(Balls *p_balls)
+{
+    test_ptr(p_balls, "p_balls", "update_balls");
+
+    for(int i = 0; i < p_balls->num_balls; i++)
+       al_draw_filled_circle(p_balls->a_ball[i].x, p_balls->a_ball[i].y, p_balls->a_ball[i].r, p_balls->a_ball[i].ball_color); 
+}
+
 State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
 {
     State_t state = PLAYING;
@@ -125,17 +146,20 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
         switch (event.type)
         {
             case ALLEGRO_EVENT_TIMER:
-                    //disp_pre_draw(*buffer);
-                    //al_clear_to_color(al_map_rgb(0,0,0));
+                    disp_pre_draw(*buffer);
+                    al_clear_to_color(al_map_rgb(rand() % 2,50,0));
 
                     //hud_start_draw(tittle_font, text_font);
+                    update_balls(balls_array);
 
-                    //disp_post_draw(*disp, *buffer);
+                    draw_balls(balls_array);
+
+                    disp_post_draw(*disp, *buffer);
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
                     al_get_mouse_state(&mouse_state);
 
-                    insert_ball(balls_array, 0, 0, 0.5, 0.5, 2, BALL_COLOR);
+                    insert_ball(balls_array, 0, 0, 0.001, 0.001, 2, BALL_COLOR);
 
                     //if(play_button_clicked(&mouse_state))
                     //{
@@ -147,10 +171,14 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                     state = ENDGAME;
+                    #ifdef DEBUG
+                        log_info("state_playing", "ENDGAME state!");
+                    #endif
                 break;
         }
     }
 
+    destroy_balls_array(balls_array);
     al_destroy_font(tittle_font);
     al_destroy_font(text_font);
     return state;

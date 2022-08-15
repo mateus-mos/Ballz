@@ -216,7 +216,7 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
                             log_info("state_start", "Button 'Play' pressed!");
                             log_info("state_start", "Change state to PLAY!");
                         #endif
-                        //state = PLAY;
+                        state = PLAYING;
                     }
 
                     #ifdef DEBUG
