@@ -7,7 +7,7 @@
 #define ARRAY_BALLS_SIZE 100
 
 /* STRUCTS */
-typedef struct
+typedef struct 
 {
     int x_left;
     int y_bottom;
@@ -15,13 +15,7 @@ typedef struct
     int y_top;
     float rx;
     float ry;
-} Dimension;
-
-typedef struct 
-{
-    int x;
-    int y;
-    Dimension box_dimension;
+    Dimension b_dimension;
     ALLEGRO_COLOR box_color;
 } Box;
 
@@ -49,10 +43,10 @@ Balls *create_balls_array(int size)
     Ball *a_ball;
 
     p_balls = malloc(sizeof(Ball));
-    test_ptr(p_balls, "p_balls");
+    test_ptr(p_balls, "p_balls", "create_balls_array");
 
     a_ball = malloc(sizeof(Ball) * size);
-    test_ptr(a_ball, "a_ball");
+    test_ptr(a_ball, "a_ball", "create_balls_array");
 
     p_balls->num_balls = 0;
     p_balls->num_balls_allocated = size;
@@ -63,15 +57,35 @@ Balls *create_balls_array(int size)
 
 void destroy_balls_array(Balls *p_balls)
 {
-    test_ptr(p_balls, "p_balls in destroy_balls_array");
+    test_ptr(p_balls, "p_balls", "destroy_balls_array");
 
     free(p_balls->a_ball);
     free(p_balls);
 }
 
+Balls *reallocate_balls(Balls *p_balls, int n_balls)
+{
+    Balls *n_balls;
+
+    test_ptr(p_balls, "p_balls", "reallocate_balls");
+    test_ptr(p_balls->a_ball, "p_balls->a_balls", "reallocate_balls");
+
+    n_balls = realloc(p_balls->a_ball, sizeof(Ball) * n_balls); 
+    test_ptr(n_balls, "n_balls", "reallocate_balls");
+
+    return n_balls;
+}
+
 void insert_ball(Balls *p_balls, int x, int y, int r, float x_vel, float y_vel, ALLEGRO_COLOR ball_color)
 {
-    test_ptr(p_balls, "p_balls in insert_ball");
+    test_ptr(p_balls, "p_balls", "insert_ball");
+    test_ptr(p_balls->a_ball, "p_balls->a_ball", "insert_ball");
+
+    if(p_balls->num_balls_allocated == p_balls->num_balls)
+    {
+        log_error("insert_ball", "p_balls doesn't have enough space to a new ball!");
+        exit(1);
+    }
 
     p_balls->a_ball[p_balls->num_balls].x = x;
     p_balls->a_ball[p_balls->num_balls].y = y;
@@ -96,10 +110,10 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     ALLEGRO_FONT * text_font;
 
     tittle_font = load_font(GREATE_FIGHTER_FONT, TITTLE_FONT_SIZE);
-    test_ptr(tittle_font, "tittle_font");
+    test_ptr(tittle_font, "tittle_font", "state_playing");
 
     text_font = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
-    test_ptr(text_font, "text_font");
+    test_ptr(text_font, "text_font", "state_playing");
 
     Balls *balls_array = create_balls_array(ARRAY_BALLS_SIZE);
     test_ptr(balls_array, "balls_array");
