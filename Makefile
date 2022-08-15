@@ -3,7 +3,7 @@ ALFLAGS=`pkg-config allegro-5 allegro_font-5 allegro_primitives-5 allegro_audio-
 
 all: game
 
-debug: CFLAGS += -DEBUG -g
+debug: CFLAGS += -DDEBUG -g
 debug: all
 
 clean:
@@ -12,8 +12,8 @@ clean:
 purge: clean
 	-rm -f BallzGame
 
-game:  game.o ballz.o ballz_playing.o
-	gcc $(CFLAGS) game.o ballz.o ballz_playing.o -o BallzGame $(ALFLAGS) 
+game:  game.o ballz.o ballz_playing.o log.o
+	gcc $(CFLAGS) game.o ballz.o ballz_playing.o log.o -o BallzGame $(ALFLAGS) 
 
 game.o: game.c  
 	gcc -c $(CFLAGS) game.c $(ALFLAGS)
@@ -21,7 +21,11 @@ game.o: game.c
 ballz.o: ballz.c  ballz.h
 	gcc -c $(CFLAGS) ballz.c $(ALFLAGS)
 
-ballz_playing.o: ballz_playing.c ballz_playing.h  ballz.h
+ballz_playing.o: ballz_playing.c ballz_playing.h log.h  
 	gcc -c $(CFLAGS) ballz_playing.c $(ALFLAGS)
+
+log.o: log.c log.h
+	gcc -c $(CFLAGS) log.c 
+
 
  
