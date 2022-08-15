@@ -175,6 +175,10 @@ void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font)
 
 State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
 {
+    #ifdef DEBUG
+        log_info("state_start", "State START initialized");
+    #endif
+
     State_t state = START;
     ALLEGRO_EVENT event;
     ALLEGRO_MOUSE_STATE mouse_state;
@@ -207,12 +211,16 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
 
                     if(play_button_clicked(&mouse_state))
                     {
-                        fprintf(stderr, "[INFO]: Button 'Play' pressed! \n");
-                        fprintf(stderr, "[INFO]: Change state to PLAY! \n");
+                        #ifdef DEBUG
+                            log_info("state_start", "Button 'Play' pressed!");
+                            log_info("state_start", "Change state to PLAY!");
+                        #endif
                         //state = PLAY;
                     }
 
-                    fprintf(stderr, "[INFO]: Mouse pressed! x: %d, y: %d\n", mouse_state.x, mouse_state.y);
+                    #ifdef DEBUG
+                        log_info("state_start", "Mouse Pressed!");
+                    #endif
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                     state = ENDGAME;
