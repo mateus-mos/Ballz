@@ -9,10 +9,10 @@
 /* STRUCTS */
 typedef struct 
 {
-    int x_left;
-    int y_bottom;
-    int x_right;
-    int y_top;
+    float x_left;
+    float y_bottom;
+    float x_right;
+    float y_top;
     float rx;
     float ry;
     ALLEGRO_COLOR box_color;
@@ -20,8 +20,8 @@ typedef struct
 
 typedef struct 
 {
-    int x;
-    int y;
+    float x;
+    float y;
     int r;
     float x_vel;
     float y_vel;
@@ -159,7 +159,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
                     al_get_mouse_state(&mouse_state);
 
-                    insert_ball(balls_array, 0, 0, 0.001, 0.001, 2, BALL_COLOR);
+                    insert_ball(balls_array, BUFFER_H/2, BUFFER_W/2, 2, 1, 1, BALL_COLOR);
 
                     //if(play_button_clicked(&mouse_state))
                     //{
