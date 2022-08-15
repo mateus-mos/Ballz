@@ -1,8 +1,9 @@
+#include "ballz_playing.h"
+#include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "ballz_playing.h"
 
 /* STRUCTS */
 typedef struct
@@ -27,7 +28,7 @@ typedef struct
 {
     int x;
     int y;
-    Dimension ball_dimension;
+    int r;
     ALLEGRO_COLOR ball_color;
 } Ball;
 
@@ -57,7 +58,7 @@ Balls *create_balls_array(int size)
     return p_balls;
 }
 
-void *destroy_balls_array(Balls *p_balls)
+void destroy_balls_array(Balls *p_balls)
 {
     test_ptr(p_balls, "p_balls in destroy_balls_array");
 
@@ -65,8 +66,20 @@ void *destroy_balls_array(Balls *p_balls)
     free(p_balls);
 }
 
-int insert_ball(Balls *p_balls)
+void insert_ball(Balls *p_balls, int x, int y, int r, ALLEGRO_COLOR ball_color)
 {
+    test_ptr(p_balls, "p_balls in insert_ball");
+
+    p_balls->a_ball[p_balls->num_balls].x = x;
+    p_balls->a_ball[p_balls->num_balls].y = y;
+    p_balls->a_ball[p_balls->num_balls].r = r;
+    p_balls->a_ball[p_balls->num_balls].ball_color = ball_color;
+
+   p_balls->num_balls++;
+
+    #ifdef DEBUG
+        log_info("insert_ball", "A Ball was inserted!");
+    #endif
 }
 
 State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
