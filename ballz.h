@@ -52,4 +52,5 @@
 
     #define PRIMARY_COLOR                   PIXEL(242, 226, 5)
     #define SECONDARY_COLOR                 PIXEL(242, 5, 203)
+    #define BALL_COLOR                      PIXEL(2, 5, 55)
 #endif
