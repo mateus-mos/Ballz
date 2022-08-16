@@ -109,8 +109,15 @@ void update_balls(Balls *p_balls)
     {
         p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel; 
         p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel; 
+
         /* Test collide with wall or map */
+        if(p_balls->a_ball[i].x > BUFFER_W || p_balls->a_ball[i].x < 0)
+            p_balls->a_ball[i].x_vel *= -1;  
+
+        if(p_balls->a_ball[i].y > BUFFER_H || p_balls->a_ball[i].y < 0)
+            p_balls->a_ball[i].y_vel *= -1;  
     }
+    
 }
 
 void draw_balls(Balls *p_balls)
@@ -147,7 +154,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
         {
             case ALLEGRO_EVENT_TIMER:
                     disp_pre_draw(*buffer);
-                    al_clear_to_color(al_map_rgb(rand() % 2,50,0));
+                    al_clear_to_color(al_map_rgb(0,0,0));
 
                     //hud_start_draw(tittle_font, text_font);
                     update_balls(balls_array);
@@ -159,7 +166,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
                     al_get_mouse_state(&mouse_state);
 
-                    insert_ball(balls_array, BUFFER_H/2, BUFFER_W/2, 2, 1, 1, BALL_COLOR);
+                    insert_ball(balls_array, BUFFER_H/2, BUFFER_W/2, 2, 1, 1, SECONDARY_COLOR);
 
                     //if(play_button_clicked(&mouse_state))
                     //{
