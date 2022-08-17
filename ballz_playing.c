@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #define ARRAY_BALLS_SIZE 100
 
@@ -128,6 +129,17 @@ void draw_balls(Balls *p_balls)
        al_draw_filled_circle(p_balls->a_ball[i].x, p_balls->a_ball[i].y, p_balls->a_ball[i].r, p_balls->a_ball[i].ball_color); 
 }
 
+void launch_ball(Balls *balls_array, float x, float y, float speed)
+{
+    float A = x/DISP_SCALE - BUFFER_W/2;
+    float B = y/DISP_SCALE - BUFFER_H;
+
+    float k = speed /(float)sqrt( A*A + B*B);
+
+    insert_ball(balls_array, BUFFER_W/2, BUFFER_H, 2, A * k, B * k, SECONDARY_COLOR);
+
+}
+
 State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
 {
     State_t state = PLAYING;
@@ -166,7 +178,8 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
                     al_get_mouse_state(&mouse_state);
 
-                    insert_ball(balls_array, BUFFER_H/2, BUFFER_W/2, 2, 1, 1, SECONDARY_COLOR);
+                    launch_ball(balls_array, mouse_state.x, mouse_state.y, 2);
+
 
                     //if(play_button_clicked(&mouse_state))
                     //{

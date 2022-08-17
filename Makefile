@@ -13,7 +13,7 @@ purge: clean
 	-rm -f BallzGame
 
 game:  game.o ballz.o ballz_playing.o log.o
-	gcc $(CFLAGS) game.o ballz.o ballz_playing.o log.o -o BallzGame $(ALFLAGS) 
+	gcc  $(CFLAGS) game.o ballz.o ballz_playing.o log.o -o BallzGame -lm $(ALFLAGS) 
 
 game.o: game.c  
 	gcc -c $(CFLAGS) game.c $(ALFLAGS)
@@ -22,7 +22,7 @@ ballz.o: ballz.c  ballz.h
 	gcc -c $(CFLAGS) ballz.c $(ALFLAGS)
 
 ballz_playing.o: ballz_playing.c ballz_playing.h log.h  
-	gcc -c $(CFLAGS) ballz_playing.c $(ALFLAGS)
+	gcc -c -lm $(CFLAGS) ballz_playing.c $(ALFLAGS)
 
 log.o: log.c log.h
 	gcc -c $(CFLAGS) log.c 
