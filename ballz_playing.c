@@ -59,7 +59,6 @@ void destroy_balls_array(Balls *p_balls)
 {
     test_ptr(p_balls, "p_balls", "destroy_balls_array");
 
-    /* Destroy colors of the balls */
     free(p_balls->a_ball);
     free(p_balls);
 }
