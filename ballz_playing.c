@@ -7,6 +7,7 @@
 
 #define ARRAY_BALLS_SIZE 100
 
+/* PLAYABLE AREA */
 #define PA_W BUFFER_W / 2
 #define PA_H BUFFER_H
 #define PA_MARGIN_W_LEFT (BUFFER_W - PA_W) / 2
@@ -83,7 +84,7 @@ Balls *reallocate_balls(Balls *p_balls, int n_balls)
     return n_p_balls;
 }
 
-void insert_ball(Balls *p_balls, int x, int y, int r, float x_vel, float y_vel, ALLEGRO_COLOR ball_color)
+void insert_ball(Balls *p_balls, int x, int y, int r, ALLEGRO_COLOR ball_color)
 {
     test_ptr(p_balls, "p_balls", "insert_ball");
     test_ptr(p_balls->a_ball, "p_balls->a_ball", "insert_ball");
@@ -97,8 +98,8 @@ void insert_ball(Balls *p_balls, int x, int y, int r, float x_vel, float y_vel, 
     p_balls->a_ball[p_balls->num_balls].x = x;
     p_balls->a_ball[p_balls->num_balls].y = y;
     p_balls->a_ball[p_balls->num_balls].r = r;
-    p_balls->a_ball[p_balls->num_balls].x_vel = x_vel;
-    p_balls->a_ball[p_balls->num_balls].y_vel = y_vel;
+    p_balls->a_ball[p_balls->num_balls].x_vel = 0;
+    p_balls->a_ball[p_balls->num_balls].y_vel = 0;
     p_balls->a_ball[p_balls->num_balls].ball_color = ball_color;
 
    p_balls->num_balls++;
@@ -117,11 +118,12 @@ void update_balls(Balls *p_balls)
         p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel; 
         p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel; 
 
+        
         /* Test collide with wall or map */
-        if(p_balls->a_ball[i].x > BUFFER_W || p_balls->a_ball[i].x < 0)
+        if(p_balls->a_ball[i].x > (BUFFER_W - PA_MARGIN_W_RIGHT) || p_balls->a_ball[i].x < PA_MARGIN_W_LEFT)
             p_balls->a_ball[i].x_vel *= -1;  
 
-        if(p_balls->a_ball[i].y > BUFFER_H || p_balls->a_ball[i].y < 0)
+        if(p_balls->a_ball[i].y > (BUFFER_H - PA_MARGIN_H_BOTTOM) || p_balls->a_ball[i].y < PA_MARGIN_H_TOP)
             p_balls->a_ball[i].y_vel *= -1;  
     }
     
@@ -132,18 +134,50 @@ void draw_balls(Balls *p_balls)
     test_ptr(p_balls, "p_balls", "update_balls");
 
     for(int i = 0; i < p_balls->num_balls; i++)
-       al_draw_filled_circle(p_balls->a_ball[i].x, p_balls->a_ball[i].y, p_balls->a_ball[i].r, p_balls->a_ball[i].ball_color); 
+       al_draw_filled_circle(p_balls->a_ball[i].x, p_balls->a_ball[i].y, p_balls->a_ball[i].r, BALL_COLOR); 
+
 }
 
-void launch_ball(Balls *balls_array, float x, float y, float speed)
+void launch_ball(Balls *balls_array, int ball_index, float from_x, float from_y, float to_x, float to_y, float speed)
 {
-    float A = x/DISP_SCALE - BUFFER_W/2;
-    float B = y/DISP_SCALE - BUFFER_H;
+    float A = to_x - from_x; 
+    float B = to_y - from_y;
 
     float k = speed /(float)sqrt( A*A + B*B);
 
-    insert_ball(balls_array, BUFFER_W/2, BUFFER_H, 1, A * k, B * k, SECONDARY_COLOR);
+    balls_array->a_ball[ball_index].x = from_x;
+    balls_array->a_ball[ball_index].y = from_y;
 
+    balls_array->a_ball[ball_index].x_vel = A * k;
+    balls_array->a_ball[ball_index].y_vel = B * k;
+
+    #ifdef DEBUG
+        log_info("launch_ball", "Ball launched!");
+    #endif
+
+}
+
+void launch_all_balls(Balls *balls_array, float to_x, float to_y, float speed)
+{
+}
+
+bool balls_ready_for_launch(Balls *balls_array)
+{
+    int i = 0;
+    while(i < balls_array->num_balls - 1 )
+    {
+        if(balls_array->a_ball[i].y < (BUFFER_H - PA_MARGIN_H_TOP))
+            return false;
+
+        if(fabs(balls_array->a_ball[i].y - balls_array->a_ball[i+1].y) > 0.01)
+            return false;
+        i++;
+    }
+
+    if(balls_array->a_ball[i].y < (BUFFER_H - PA_MARGIN_H_TOP))
+        return false;
+
+    return true;
 }
 
 void draw_hud()
@@ -190,6 +224,9 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     //hud_start_draw(tittle_font, text_font);
                     update_balls(balls_array);
 
+                    /* if all balls at bottom, so can launch balls again */
+                        /* Print arrow to aim */
+
                     draw_hud();
                     draw_balls(balls_array);
 
@@ -198,7 +235,15 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
                     al_get_mouse_state(&mouse_state);
 
-                    launch_ball(balls_array, mouse_state.x, mouse_state.y, 2);
+                    insert_ball(balls_array, BUFFER_W/2, BUFFER_H, 1, SECONDARY_COLOR);
+
+                    if(balls_ready_for_launch(balls_array))
+                    {
+                        //launch_all_balls();
+                    }
+                    /* if all balls at bottom, so can launch balls again */
+                    /* And mouse button down */
+                        /* Launch balls to mouse's position */
 
 
                     //if(play_button_clicked(&mouse_state))
