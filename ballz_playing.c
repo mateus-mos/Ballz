@@ -7,6 +7,13 @@
 
 #define ARRAY_BALLS_SIZE 100
 
+#define PA_W BUFFER_W / 2
+#define PA_H BUFFER_H
+#define PA_MARGIN_W_LEFT (BUFFER_W - PA_W) / 2
+#define PA_MARGIN_W_RIGHT (BUFFER_W - PA_W) / 2
+#define PA_MARGIN_H_TOP BUFFER_H / 25 
+#define PA_MARGIN_H_BOTTOM BUFFER_H / 25 
+
 /* STRUCTS */
 typedef struct 
 {
@@ -135,7 +142,20 @@ void launch_ball(Balls *balls_array, float x, float y, float speed)
 
     float k = speed /(float)sqrt( A*A + B*B);
 
-    insert_ball(balls_array, BUFFER_W/2, BUFFER_H, 2, A * k, B * k, SECONDARY_COLOR);
+    insert_ball(balls_array, BUFFER_W/2, BUFFER_H, 1, A * k, B * k, SECONDARY_COLOR);
+
+}
+
+void draw_hud()
+{
+    
+    /* Draw vertical lines */
+    al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, PA_MARGIN_W_LEFT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
+    al_draw_line(BUFFER_W - PA_MARGIN_W_RIGHT, PA_MARGIN_H_TOP, BUFFER_W - PA_MARGIN_W_RIGHT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
+
+    /* Draw horizontal lines */
+    al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, BUFFER_W - PA_MARGIN_W_RIGHT, PA_MARGIN_H_TOP, PRIMARY_COLOR, 2);
+    al_draw_line(PA_MARGIN_W_LEFT, BUFFER_H - PA_MARGIN_H_BOTTOM, BUFFER_W - PA_MARGIN_W_RIGHT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
 
 }
 
@@ -170,6 +190,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     //hud_start_draw(tittle_font, text_font);
                     update_balls(balls_array);
 
+                    draw_hud();
                     draw_balls(balls_array);
 
                     disp_post_draw(*disp, *buffer);
