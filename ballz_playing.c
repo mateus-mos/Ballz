@@ -15,6 +15,7 @@
 #define PA_MARGIN_H_TOP BUFFER_H / 25 
 #define PA_MARGIN_H_BOTTOM BUFFER_H / 25 
 
+#define TIME_BETWEEN_LAUNCHED_BALLS 0.3
 #define BALL_SPEED 10
 
 /* STRUCTS */
@@ -292,19 +293,17 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     disp_pre_draw(*buffer);
                     al_clear_to_color(al_map_rgb(0,0,0));
 
-                    //hud_start_draw(tittle_font, text_font);
-
-                    /* if all balls at bottom, so can launch balls again */
-                        /* Print arrow to aim */
-
-                    if(launching_balls && !(time_last_ball_launch + 0.3 > al_get_time()))
+                    
+                    if(launching_balls && !(time_last_ball_launch + TIME_BETWEEN_LAUNCHED_BALLS > al_get_time()))
                     {
                         if(balls_launched == balls_array->num_balls)
                             launching_balls = false;
 
                         launch_ball(balls_array, balls_launched, balls_array->a_ball[balls_launched].x, balls_array->a_ball[balls_launched].y, mouse_state.x/DISP_SCALE, mouse_state.y/DISP_SCALE, BALL_SPEED);
+
                         balls_array->a_ball[balls_launched].at_bottom = false;
                         balls_launched++;
+
                         time_last_ball_launch = al_get_time();
                     }
 
@@ -322,17 +321,6 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                         launching_balls = true;
                         balls_launched = 0;
                     }
-                    /* if all balls at bottom, so can launch balls again */
-                    /* And mouse button down */
-                        /* Launch balls to mouse's position */
-
-
-                    //if(play_button_clicked(&mouse_state))
-                    //{
-                    //    fprintf(stderr, "[INFO]: Button 'Play' pressed! \n");
-                    //    fprintf(stderr, "[INFO]: Change state to PLAY! \n");
-                    //    //state = PLAY;
-                    //}
 
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
