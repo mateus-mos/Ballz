@@ -65,19 +65,9 @@ void must_init(bool test, const char *description)
     exit(EXIT_FAILURE);
 }
 
-/* Test if a pointer is NULL, if so exit */
-void test_ptr(bool test, const char *description, const char *function_name)
-{
-    if(test)
-        return;
-
-    fprintf(stderr, "[ERROR]: [%s] pointer is NULL in the function [%s]!\n", description, function_name);
-    exit(EXIT_FAILURE);
-}
-
 ALLEGRO_FONT* load_font(const char *font_name, int font_size)
 {
-    test_ptr(font_name, "font_name", "load_font");
+    log_test_ptr(font_name, "load_font", "font_name");
     char font_path_buffer[100];
 
     strcpy(font_path_buffer, FONTS_PATH);
@@ -187,10 +177,10 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
     ALLEGRO_FONT * text_font;
 
     tittle_font = load_font(GREATE_FIGHTER_FONT, TITTLE_FONT_SIZE);
-    test_ptr(tittle_font, "tittle_font", "state_start");
+    log_test_ptr(tittle_font, "state_start", "tittle_font");
 
-    text_font = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
-    test_ptr(text_font, "text_font", "state_start");
+    //text_font = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
+    log_test_ptr(text_font, "state_start", "text_font");
 
     while(state == START)
     {

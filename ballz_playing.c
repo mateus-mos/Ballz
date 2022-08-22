@@ -6,6 +6,7 @@
 #include <math.h>
 
 #define ARRAY_BALLS_SIZE 100
+#define ARRAY_BOXS_SIZE  25
 
 /* PLAYABLE AREA */
 #define PA_W BUFFER_W / 2
@@ -32,6 +33,13 @@
 
     typedef struct 
     {
+        int num_boxs;
+        int num_boxs_allocated;
+        Box *a_box;
+    } Boxs;
+
+    typedef struct 
+    {
         float x;
         float y;
         int r;
@@ -50,9 +58,6 @@
         Ball *a_ball;
     } Balls;
 
-
-
-
 /* PROTOTYPES */
     void launch_ball(Balls *balls_array, int ball_index, float from_x, float from_y, float to_x, float to_y, float speed);
 
@@ -63,43 +68,48 @@ Balls *create_balls_array(int size)
     Ball *a_ball;
 
     p_balls = malloc(sizeof(Ball));
-    test_ptr(p_balls, "p_balls", "create_balls_array");
+    log_test_ptr(p_balls, "create_balls_array", "p_balls");
 
     a_ball = malloc(sizeof(Ball) * size);
-    test_ptr(a_ball, "a_ball", "create_balls_array");
+    log_test_ptr(a_ball,  "create_balls_array", "a_ball");
 
     p_balls->num_balls = 0;
     p_balls->num_balls_allocated = size;
     p_balls->a_ball = a_ball;
 
+    #ifdef DEBUG
+        log_info("create_balls_array", "Balls Array created!");
+    #endif
     return p_balls;
 }
 
 void destroy_balls_array(Balls *p_balls)
 {
-    test_ptr(p_balls, "p_balls", "destroy_balls_array");
-
     free(p_balls->a_ball);
     free(p_balls);
+
+    #ifdef DEBUG
+        log_info("destroy_balls_array", "Balls Array destroyed!");
+    #endif
 }
 
 Balls *reallocate_balls(Balls *p_balls, int n_balls)
 {
     Balls *n_p_balls;
 
-    test_ptr(p_balls, "p_balls", "reallocate_balls");
-    test_ptr(p_balls->a_ball, "p_balls->a_balls", "reallocate_balls");
+    log_test_ptr(p_balls, "reallocate_balls", "p_balls");
+    log_test_ptr(p_balls->a_ball, "reallocate_balls", "p_balls->a_balls");
 
     n_p_balls = realloc(p_balls->a_ball, sizeof(Ball) * n_balls); 
-    test_ptr(n_p_balls, "n_p_balls", "reallocate_balls");
+    log_test_ptr(n_p_balls, "reallocate_balls", "n_p_balls");
 
     return n_p_balls;
 }
 
 void insert_ball(Balls *p_balls, int x, int y, int r, ALLEGRO_COLOR ball_color)
 {
-    test_ptr(p_balls, "p_balls", "insert_ball");
-    test_ptr(p_balls->a_ball, "p_balls->a_ball", "insert_ball");
+    log_test_ptr(p_balls, "insert_ball", "p_balls");
+    log_test_ptr(p_balls->a_ball, "insert_ball", "p_balls->a_ball");
 
     if(p_balls->num_balls_allocated == p_balls->num_balls)
     {
@@ -149,14 +159,14 @@ bool is_ball_moving(Balls *balls_array, int index)
 
 void update_balls(Balls *p_balls)
 {
-    test_ptr(p_balls, "p_balls", "update_balls");
+    log_test_ptr(p_balls, "update_balls", "p_balls");
 
     for(int i = 0; i < p_balls->num_balls; i++)
     {
         p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel;
         p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel;
 
-        /* Test collide with wall or map */
+        /* Test collide with walls*/
         if(p_balls->a_ball[i].x > (BUFFER_W - PA_MARGIN_W_RIGHT) || p_balls->a_ball[i].x < PA_MARGIN_W_LEFT)
         {
             /* Colide, so undo the movement */
@@ -165,6 +175,7 @@ void update_balls(Balls *p_balls)
 
             p_balls->a_ball[i].x_vel *= -1;  
         }
+        /* Test collide with the top */
         else if(p_balls->a_ball[i].y < PA_MARGIN_H_TOP)
         {
             p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
@@ -190,10 +201,9 @@ void update_balls(Balls *p_balls)
     }
 }
 
-
 void draw_balls(Balls *p_balls)
 {
-    test_ptr(p_balls, "p_balls", "update_balls");
+    log_test_ptr(p_balls, "update_balls", "p_balls");
 
     for(int i = 0; i < p_balls->num_balls; i++)
        al_draw_filled_circle(p_balls->a_ball[i].x, p_balls->a_ball[i].y, p_balls->a_ball[i].r, BALL_COLOR); 
@@ -243,6 +253,37 @@ bool balls_ready_for_launch(Balls *balls_array)
 
     return true;
 }
+
+Boxs *create_boxs_array(int size)
+{
+    Boxs *p_boxs = malloc(sizeof(Balls));
+    log_test_ptr(p_boxs, "create_boxs_array", "p_boxs");
+
+    p_boxs->a_box = malloc(sizeof(Box) * size);
+    log_test_ptr(p_boxs->a_box, "create_boxs_array", "p_boxs->a_box");
+
+    p_boxs->num_boxs = 0;
+    p_boxs->num_boxs_allocated = size;
+
+    #ifdef DEBUG
+        log_info("create_boxs_array", "Boxs Array created!");
+    #endif
+    return p_boxs;
+}
+
+void destroy_boxs_array(Boxs *boxs_array)
+{
+    free(boxs_array->a_box);
+    free(boxs_array);
+    #ifdef DEBUG
+        log_info("destroy_boxs_array", "Boxs Array destroyed!");
+    #endif
+}
+
+void insert_box(Boxs *boxs_array, float x, float y, float height, float width, ALLEGRO_COLOR *collor)
+{
+}
+
 void draw_hud()
 {
     
@@ -258,7 +299,6 @@ void draw_hud()
 
 State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
 {
-    /* Use threads when launching the balls */
     State_t state = PLAYING;
     ALLEGRO_EVENT event;
     ALLEGRO_MOUSE_STATE mouse_state;
@@ -270,13 +310,16 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     double time_last_ball_launch = 0;
 
     tittle_font = load_font(GREATE_FIGHTER_FONT, TITTLE_FONT_SIZE);
-    test_ptr(tittle_font, "tittle_font", "state_playing");
+    log_test_ptr(tittle_font, "state_playing", "tittle_font");
 
     text_font = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
-    test_ptr(text_font, "text_font", "state_playing");
+    log_test_ptr(text_font, "state_playing", "text_font");
 
     Balls *balls_array = create_balls_array(ARRAY_BALLS_SIZE);
-    test_ptr(balls_array, "balls_array", "state_playing");
+    log_test_ptr(balls_array, "state_playing", "balls_array");
+
+    Boxs *boxs_array = create_boxs_array(ARRAY_BOXS_SIZE);
+    log_test_ptr(boxs_array, "state_playing", "boxs_array");
 
     for(int i = 0; i < 10; i++)
         insert_ball(balls_array, BUFFER_W/2, BUFFER_H - PA_MARGIN_H_BOTTOM - 10, 2, BALL_COLOR);
@@ -284,7 +327,6 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
     while(state == PLAYING)
     {
-
         al_wait_for_event(queue, &event);
 
         switch (event.type)
@@ -333,6 +375,8 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     }
 
     destroy_balls_array(balls_array);
+    destroy_boxs_array(boxs_array);
+
     al_destroy_font(tittle_font);
     al_destroy_font(text_font);
     return state;

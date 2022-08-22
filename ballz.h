@@ -43,7 +43,6 @@
     
 
     void must_init(bool, const char *);
-    void test_ptr(bool , const char *, const char *);
     ALLEGRO_FONT* load_font(const char *, int);
 
 /* OTHERS */
