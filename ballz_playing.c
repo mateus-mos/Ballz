@@ -78,7 +78,7 @@ Balls *create_balls_array(int size)
     p_balls->a_ball = a_ball;
 
     #ifdef DEBUG
-        log_info("create_balls_array", "Balls Array created!");
+        log_info("create_balls_array", "Balls Array created with size!");
     #endif
     return p_balls;
 }
@@ -106,7 +106,7 @@ Balls *reallocate_balls(Balls *p_balls, int n_balls)
     return n_p_balls;
 }
 
-void insert_ball(Balls *p_balls, int x, int y, int r, ALLEGRO_COLOR ball_color)
+void insert_ball(Balls *p_balls, float x, float y, float r, ALLEGRO_COLOR ball_color)
 {
     log_test_ptr(p_balls, "insert_ball", "p_balls");
     log_test_ptr(p_balls->a_ball, "insert_ball", "p_balls->a_ball");
@@ -128,7 +128,7 @@ void insert_ball(Balls *p_balls, int x, int y, int r, ALLEGRO_COLOR ball_color)
    p_balls->num_balls++;
 
     #ifdef DEBUG
-        log_info("insert_ball", "A Ball was inserted!");
+        log_info("insert_ball", "A Ball was inserted at (%.2f, %.2f)!", x, y);
     #endif
 }
 
@@ -187,7 +187,7 @@ void update_balls(Balls *p_balls)
         else if(ball_hit_the_bottom(p_balls, i))
         {
             #ifdef DEBUG
-                log_info("update_balls", "A ball hit the bottom");
+                log_info("update_balls", "The ball with index %d hit the bottom", i);
             #endif
 
             p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
@@ -231,7 +231,7 @@ void launch_ball(Balls *balls_array, int ball_index, float from_x, float from_y,
 
 
     #ifdef DEBUG
-        log_info("launch_ball", "Ball launched!");
+        log_info("launch_ball", "Ball launched from (%.2f,%.2f) to (%.2f,%.2f)!", from_x, from_y, to_x, to_y);
     #endif
 
 }
