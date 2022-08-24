@@ -9,12 +9,20 @@
 #define ARRAY_BOXS_SIZE  25
 
 /* PLAYABLE AREA */
-#define PA_W BUFFER_W / 2
+#define PA_W BUFFER_W 
 #define PA_H BUFFER_H
-#define PA_MARGIN_W_LEFT (BUFFER_W - PA_W) / 2
-#define PA_MARGIN_W_RIGHT (BUFFER_W - PA_W) / 2
-#define PA_MARGIN_H_TOP BUFFER_H / 25 
-#define PA_MARGIN_H_BOTTOM BUFFER_H / 25 
+#define PA_MARGIN_W_LEFT 0 
+#define PA_MARGIN_W_RIGHT 0 
+#define PA_MARGIN_H_TOP BUFFER_H / 20 
+#define PA_MARGIN_H_BOTTOM 0 
+
+#define N_BOXS_PER_ROW 6
+
+
+//#define PA_MARGIN_W_LEFT (BUFFER_W - PA_W) / 2
+//#define PA_MARGIN_W_RIGHT (BUFFER_W - PA_W) / 2
+//#define PA_MARGIN_H_TOP BUFFER_H / 25 
+//#define PA_MARGIN_H_BOTTOM BUFFER_H / 25 
 
 #define TIME_BETWEEN_LAUNCHED_BALLS 0.3
 #define BALL_SPEED 10
@@ -26,8 +34,9 @@
         float y_bottom;
         float x_right;
         float y_top;
-        float rx;
-        float ry;
+        float x_vel;
+        float y_vel;
+        int points;
         ALLEGRO_COLOR box_color;
     } Box;
 
@@ -280,8 +289,64 @@ void destroy_boxs_array(Boxs *boxs_array)
     #endif
 }
 
-void insert_box(Boxs *boxs_array, float x, float y, float height, float width, ALLEGRO_COLOR *collor)
+void insert_box(Boxs *boxs_array, float x, float y, float height, float width, int points, ALLEGRO_COLOR collor)
 {
+    log_test_ptr(boxs_array, "insert_box", "boxs_array");
+
+    if(boxs_array->num_boxs == boxs_array->num_boxs_allocated)
+    {
+        log_error("insert_box", "There's not enough space in the box array for a new box!");
+        exit(1);
+    }
+
+    boxs_array->a_box[boxs_array->num_boxs].x_left = x - width / 2;
+    boxs_array->a_box[boxs_array->num_boxs].x_right = x + width / 2;
+    boxs_array->a_box[boxs_array->num_boxs].y_top = y + height / 2;
+    boxs_array->a_box[boxs_array->num_boxs].y_bottom =  y - height / 2;
+    boxs_array->a_box[boxs_array->num_boxs].box_color =  collor;
+    boxs_array->a_box[boxs_array->num_boxs].x_vel =  0;
+    boxs_array->a_box[boxs_array->num_boxs].y_vel =  0;
+    boxs_array->a_box[boxs_array->num_boxs].points=  0;
+    
+    boxs_array->num_boxs++;
+
+    #ifdef DEBUG
+        log_info("insert_box", "Box inserted at (%.2f,%.2f)!", x, y);
+    #endif
+}
+
+void create_box_row(Boxs *boxs_array, int level)
+{
+    log_test_ptr(boxs_array, "create_box_row", "boxs_array");
+
+    int i;
+    float x, y;
+
+    for(i = 0; i < N_BOXS_PER_ROW; i++)
+    {
+        x = ((PA_W / N_BOXS_PER_ROW) / 2) + i * (PA_W / N_BOXS_PER_ROW);
+        y =  PA_MARGIN_H_TOP + (BUFFER_W / N_BOXS_PER_ROW) / 2;
+        insert_box(boxs_array, x, y, BUFFER_W / N_BOXS_PER_ROW - 5, BUFFER_W / N_BOXS_PER_ROW - 5, level, SECONDARY_COLOR); 
+        //insert_box(boxs_array, x, y, 2, 2, level, PRIMARY_COLOR); 
+    }
+    #ifdef DEBUG
+        log_info("create_box_row", "New row with %d boxs created!", i);
+    #endif
+}
+
+void push_boxs_down(Boxs *boxs_array)
+{
+    for(int i = 0; i < boxs_array->num_boxs; i++)
+    {
+        boxs_array->a_box[i].y_bottom += (BUFFER_W / N_BOXS_PER_ROW) / 2;
+        boxs_array->a_box[i].y_top += (BUFFER_W / N_BOXS_PER_ROW) / 2;
+    }
+}
+
+void draw_boxs(Boxs *boxs_array)
+{
+    for(int i = 0; i < boxs_array->num_boxs; i++)
+        al_draw_filled_rectangle(boxs_array->a_box[i].x_left, boxs_array->a_box[i].y_top, boxs_array->a_box[i].x_right, boxs_array->a_box[i].y_bottom, SECONDARY_COLOR);
 }
 
 void draw_hud()
@@ -306,7 +371,9 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     ALLEGRO_FONT * text_font;
 
     bool launching_balls = false;
+    bool pushed_boxs_down = true;
     int balls_launched = 0;
+    int level = 0;
     double time_last_ball_launch = 0;
 
     tittle_font = load_font(GREATE_FIGHTER_FONT, TITTLE_FONT_SIZE);
@@ -324,6 +391,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     for(int i = 0; i < 10; i++)
         insert_ball(balls_array, BUFFER_W/2, BUFFER_H - PA_MARGIN_H_BOTTOM - 10, 2, BALL_COLOR);
 
+    create_box_row(boxs_array, level);
 
     while(state == PLAYING)
     {
@@ -335,11 +403,22 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     disp_pre_draw(*buffer);
                     al_clear_to_color(al_map_rgb(0,0,0));
 
+                    update_balls(balls_array);
+
+                    if(!launching_balls && !pushed_boxs_down && balls_ready_for_launch(balls_array))
+                    {
+                        push_boxs_down(boxs_array);
+                        pushed_boxs_down = true;
+                    }
                     
                     if(launching_balls && !(time_last_ball_launch + TIME_BETWEEN_LAUNCHED_BALLS > al_get_time()))
                     {
                         if(balls_launched == balls_array->num_balls)
+                        {
                             launching_balls = false;
+                            level++;
+                            create_box_row(boxs_array, level);
+                        }
 
                         launch_ball(balls_array, balls_launched, balls_array->a_ball[balls_launched].x, balls_array->a_ball[balls_launched].y, mouse_state.x/DISP_SCALE, mouse_state.y/DISP_SCALE, BALL_SPEED);
 
@@ -348,9 +427,10 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
                         time_last_ball_launch = al_get_time();
                     }
+                    
 
-                    update_balls(balls_array);
                     draw_hud();
+                    draw_boxs(boxs_array);
                     draw_balls(balls_array);
 
                     disp_post_draw(*disp, *buffer);
@@ -360,6 +440,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     if(!launching_balls && balls_ready_for_launch(balls_array))
                     {
                         al_get_mouse_state(&mouse_state);
+                        pushed_boxs_down = false;
                         launching_balls = true;
                         balls_launched = 0;
                     }
