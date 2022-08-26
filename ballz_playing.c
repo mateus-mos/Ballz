@@ -6,17 +6,19 @@
 #include <math.h>
 
 #define ARRAY_BALLS_SIZE 100
-#define ARRAY_BOXS_SIZE  25
+#define ARRAY_BOXS_SIZE  50 
 
 /* PLAYABLE AREA */
 #define PA_W BUFFER_W 
 #define PA_H BUFFER_H
 #define PA_MARGIN_W_LEFT 0 
 #define PA_MARGIN_W_RIGHT 0 
-#define PA_MARGIN_H_TOP BUFFER_H / 20 
+#define PA_MARGIN_H_TOP BUFFER_H / 15 
 #define PA_MARGIN_H_BOTTOM 0 
 
 #define N_BOXS_PER_ROW 6
+#define BOX_X_SCALE 0.8
+#define BOX_Y_SCALE 0.9
 
 
 //#define PA_MARGIN_W_LEFT (BUFFER_W - PA_W) / 2
@@ -25,7 +27,9 @@
 //#define PA_MARGIN_H_BOTTOM BUFFER_H / 25 
 
 #define TIME_BETWEEN_LAUNCHED_BALLS 0.3
-#define BALL_SPEED 10
+#define BALL_SPEED 5 
+#define BALL_SIZE 3
+#define BALL_HIT_BOTTOM_MARGIN 5
 
 /* STRUCTS */
     typedef struct 
@@ -158,7 +162,7 @@ void swap_balls(Balls *balls_array, int index1, int index2)
 
 bool ball_hit_the_bottom(Balls *balls_array, int index)
 {
-    return (balls_array->a_ball[index].y > (BUFFER_H - PA_MARGIN_H_BOTTOM)); 
+    return (balls_array->a_ball[index].y + BALL_HIT_BOTTOM_MARGIN  > (BUFFER_H - PA_MARGIN_H_BOTTOM)); 
 }
 
 bool is_ball_moving(Balls *balls_array, int index)
@@ -326,7 +330,7 @@ void create_box_row(Boxs *boxs_array, int level)
     {
         x = ((PA_W / N_BOXS_PER_ROW) / 2) + i * (PA_W / N_BOXS_PER_ROW);
         y =  PA_MARGIN_H_TOP + (BUFFER_W / N_BOXS_PER_ROW) / 2;
-        insert_box(boxs_array, x, y, BUFFER_W / N_BOXS_PER_ROW - 5, BUFFER_W / N_BOXS_PER_ROW - 5, level, SECONDARY_COLOR); 
+        insert_box(boxs_array, x, y, (BUFFER_W / N_BOXS_PER_ROW) * BOX_X_SCALE, (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE, level, SECONDARY_COLOR); 
         //insert_box(boxs_array, x, y, 2, 2, level, PRIMARY_COLOR); 
     }
     #ifdef DEBUG
@@ -338,8 +342,8 @@ void push_boxs_down(Boxs *boxs_array)
 {
     for(int i = 0; i < boxs_array->num_boxs; i++)
     {
-        boxs_array->a_box[i].y_bottom += (BUFFER_W / N_BOXS_PER_ROW) / 2;
-        boxs_array->a_box[i].y_top += (BUFFER_W / N_BOXS_PER_ROW) / 2;
+        boxs_array->a_box[i].y_bottom += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
+        boxs_array->a_box[i].y_top += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
     }
 }
 
@@ -349,16 +353,28 @@ void draw_boxs(Boxs *boxs_array)
         al_draw_filled_rectangle(boxs_array->a_box[i].x_left, boxs_array->a_box[i].y_top, boxs_array->a_box[i].x_right, boxs_array->a_box[i].y_bottom, SECONDARY_COLOR);
 }
 
-void draw_hud()
+void draw_hud(ALLEGRO_FONT *text_font, int level)
 {
-    
+    const char a_level = level + '0';
+
+
+    /* Draw Level */
+    al_draw_text(
+        text_font,
+        PRIMARY_COLOR,
+        BUFFER_W / 2,
+        (BUFFER_H - PA_H) / 2,
+        ALLEGRO_ALIGN_CENTER,
+        &a_level 
+    );
+
     /* Draw vertical lines */
-    al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, PA_MARGIN_W_LEFT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
-    al_draw_line(BUFFER_W - PA_MARGIN_W_RIGHT, PA_MARGIN_H_TOP, BUFFER_W - PA_MARGIN_W_RIGHT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
+   // al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, PA_MARGIN_W_LEFT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
+   // al_draw_line(BUFFER_W - PA_MARGIN_W_RIGHT, PA_MARGIN_H_TOP, BUFFER_W - PA_MARGIN_W_RIGHT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
 
     /* Draw horizontal lines */
-    al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, BUFFER_W - PA_MARGIN_W_RIGHT, PA_MARGIN_H_TOP, PRIMARY_COLOR, 2);
-    al_draw_line(PA_MARGIN_W_LEFT, BUFFER_H - PA_MARGIN_H_BOTTOM, BUFFER_W - PA_MARGIN_W_RIGHT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
+    //al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, BUFFER_W - PA_MARGIN_W_RIGHT, PA_MARGIN_H_TOP, PRIMARY_COLOR, 2);
+    //al_draw_line(PA_MARGIN_W_LEFT, BUFFER_H - PA_MARGIN_H_BOTTOM, BUFFER_W - PA_MARGIN_W_RIGHT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
 
 }
 
@@ -371,7 +387,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     ALLEGRO_FONT * text_font;
 
     bool launching_balls = false;
-    bool pushed_boxs_down = true;
+    bool new_row_created = true;
     int balls_launched = 0;
     int level = 0;
     double time_last_ball_launch = 0;
@@ -389,7 +405,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     log_test_ptr(boxs_array, "state_playing", "boxs_array");
 
     for(int i = 0; i < 10; i++)
-        insert_ball(balls_array, BUFFER_W/2, BUFFER_H - PA_MARGIN_H_BOTTOM - 10, 2, BALL_COLOR);
+        insert_ball(balls_array, BUFFER_W/2, BUFFER_H - PA_MARGIN_H_BOTTOM - 10, BALL_SIZE, BALL_COLOR);
 
     create_box_row(boxs_array, level);
 
@@ -405,19 +421,21 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
                     update_balls(balls_array);
 
-                    if(!launching_balls && !pushed_boxs_down && balls_ready_for_launch(balls_array))
+                    if(!new_row_created && !launching_balls && balls_ready_for_launch(balls_array))
                     {
+                        log_info("state_playing", "Ready for a new row");
                         push_boxs_down(boxs_array);
-                        pushed_boxs_down = true;
+                        create_box_row(boxs_array, level);
+                        level++;
+                        new_row_created = true;
                     }
-                    
+
                     if(launching_balls && !(time_last_ball_launch + TIME_BETWEEN_LAUNCHED_BALLS > al_get_time()))
                     {
                         if(balls_launched == balls_array->num_balls)
                         {
                             launching_balls = false;
-                            level++;
-                            create_box_row(boxs_array, level);
+                           // create_box_row(boxs_array, level);
                         }
 
                         launch_ball(balls_array, balls_launched, balls_array->a_ball[balls_launched].x, balls_array->a_ball[balls_launched].y, mouse_state.x/DISP_SCALE, mouse_state.y/DISP_SCALE, BALL_SPEED);
@@ -427,9 +445,9 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
                         time_last_ball_launch = al_get_time();
                     }
-                    
 
-                    draw_hud();
+
+                    draw_hud(text_font, level);
                     draw_boxs(boxs_array);
                     draw_balls(balls_array);
 
@@ -440,7 +458,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     if(!launching_balls && balls_ready_for_launch(balls_array))
                     {
                         al_get_mouse_state(&mouse_state);
-                        pushed_boxs_down = false;
+                        new_row_created = false;
                         launching_balls = true;
                         balls_launched = 0;
                     }

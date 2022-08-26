@@ -16,7 +16,7 @@
     typedef enum {START, PLAYING, GAME_OVER, ENDGAME} State_t;
 
 /* DISPLAY */
-    #define BUFFER_W 200 
+    #define BUFFER_W 180 
     #define BUFFER_H 240 
 
     #define DISP_SCALE 3
