@@ -34,6 +34,8 @@
 /* STRUCTS */
     typedef struct 
     {
+        float x_center;
+        float y_center;
         float x_left;
         float y_bottom;
         float x_right;
@@ -303,6 +305,9 @@ void insert_box(Boxs *boxs_array, float x, float y, float height, float width, i
         exit(1);
     }
 
+    boxs_array->a_box[boxs_array->num_boxs].x_center = x; 
+    boxs_array->a_box[boxs_array->num_boxs].y_center = y; 
+    boxs_array->a_box[boxs_array->num_boxs].x_left = x - width / 2;
     boxs_array->a_box[boxs_array->num_boxs].x_left = x - width / 2;
     boxs_array->a_box[boxs_array->num_boxs].x_right = x + width / 2;
     boxs_array->a_box[boxs_array->num_boxs].y_top = y + height / 2;
@@ -310,7 +315,7 @@ void insert_box(Boxs *boxs_array, float x, float y, float height, float width, i
     boxs_array->a_box[boxs_array->num_boxs].box_color =  collor;
     boxs_array->a_box[boxs_array->num_boxs].x_vel =  0;
     boxs_array->a_box[boxs_array->num_boxs].y_vel =  0;
-    boxs_array->a_box[boxs_array->num_boxs].points=  0;
+    boxs_array->a_box[boxs_array->num_boxs].points =  points;
     
     boxs_array->num_boxs++;
 
@@ -344,13 +349,29 @@ void push_boxs_down(Boxs *boxs_array)
     {
         boxs_array->a_box[i].y_bottom += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
         boxs_array->a_box[i].y_top += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
+        boxs_array->a_box[i].y_center += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
     }
 }
 
-void draw_boxs(Boxs *boxs_array)
+void draw_boxs(Boxs *boxs_array, ALLEGRO_FONT *text_font)
 {
+    char a_points;
     for(int i = 0; i < boxs_array->num_boxs; i++)
+    {
         al_draw_filled_rectangle(boxs_array->a_box[i].x_left, boxs_array->a_box[i].y_top, boxs_array->a_box[i].x_right, boxs_array->a_box[i].y_bottom, SECONDARY_COLOR);
+
+        a_points = boxs_array->a_box[i].points + '0';
+
+        /* Draw points */
+        al_draw_text(
+            text_font,
+            PRIMARY_COLOR,
+            boxs_array->a_box[i].x_center,
+            boxs_array->a_box[i].y_center - boxs_array->a_box[i].y_center / 4,
+            ALLEGRO_ALIGN_CENTER,
+            &a_points 
+        );
+    }
 }
 
 void draw_hud(ALLEGRO_FONT *text_font, int level)
@@ -424,9 +445,9 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     if(!new_row_created && !launching_balls && balls_ready_for_launch(balls_array))
                     {
                         log_info("state_playing", "Ready for a new row");
+                        level++;
                         push_boxs_down(boxs_array);
                         create_box_row(boxs_array, level);
-                        level++;
                         new_row_created = true;
                     }
 
@@ -448,7 +469,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
 
                     draw_hud(text_font, level);
-                    draw_boxs(boxs_array);
+                    draw_boxs(boxs_array, text_font);
                     draw_balls(balls_array);
 
                     disp_post_draw(*disp, *buffer);
