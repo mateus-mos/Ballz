@@ -336,7 +336,6 @@ void create_box_row(Boxs *boxs_array, int level)
         x = ((PA_W / N_BOXS_PER_ROW) / 2) + i * (PA_W / N_BOXS_PER_ROW);
         y =  PA_MARGIN_H_TOP + (BUFFER_W / N_BOXS_PER_ROW) / 2;
         insert_box(boxs_array, x, y, (BUFFER_W / N_BOXS_PER_ROW) * BOX_X_SCALE, (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE, level, SECONDARY_COLOR); 
-        //insert_box(boxs_array, x, y, 2, 2, level, PRIMARY_COLOR); 
     }
     #ifdef DEBUG
         log_info("create_box_row", "New row with %d boxs created!", i);
@@ -355,21 +354,20 @@ void push_boxs_down(Boxs *boxs_array)
 
 void draw_boxs(Boxs *boxs_array, ALLEGRO_FONT *text_font)
 {
-    char a_points;
+    char a_points[10];
     for(int i = 0; i < boxs_array->num_boxs; i++)
     {
         al_draw_filled_rectangle(boxs_array->a_box[i].x_left, boxs_array->a_box[i].y_top, boxs_array->a_box[i].x_right, boxs_array->a_box[i].y_bottom, SECONDARY_COLOR);
 
-        a_points = boxs_array->a_box[i].points + '0';
-
+        snprintf(a_points, 10, "%d", boxs_array->a_box[i].points);
         /* Draw points */
         al_draw_text(
             text_font,
             PRIMARY_COLOR,
             boxs_array->a_box[i].x_center,
-            boxs_array->a_box[i].y_center - boxs_array->a_box[i].y_center / 4,
+            boxs_array->a_box[i].y_center + (boxs_array->a_box[i].y_bottom - boxs_array->a_box[i].y_top) / 4,
             ALLEGRO_ALIGN_CENTER,
-            &a_points 
+            a_points 
         );
     }
 }
@@ -389,9 +387,10 @@ void draw_hud(ALLEGRO_FONT *text_font, int level)
         &a_level 
     );
 
+
     /* Draw vertical lines */
-   // al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, PA_MARGIN_W_LEFT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
-   // al_draw_line(BUFFER_W - PA_MARGIN_W_RIGHT, PA_MARGIN_H_TOP, BUFFER_W - PA_MARGIN_W_RIGHT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
+    //al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, PA_MARGIN_W_LEFT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
+    //al_draw_line(BUFFER_W - PA_MARGIN_W_RIGHT, PA_MARGIN_H_TOP, BUFFER_W - PA_MARGIN_W_RIGHT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
 
     /* Draw horizontal lines */
     //al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, BUFFER_W - PA_MARGIN_W_RIGHT, PA_MARGIN_H_TOP, PRIMARY_COLOR, 2);
@@ -410,7 +409,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     bool launching_balls = false;
     bool new_row_created = true;
     int balls_launched = 0;
-    int level = 0;
+    int level = 1;
     double time_last_ball_launch = 0;
 
     tittle_font = load_font(GREATE_FIGHTER_FONT, TITTLE_FONT_SIZE);
@@ -426,7 +425,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     log_test_ptr(boxs_array, "state_playing", "boxs_array");
 
     for(int i = 0; i < 10; i++)
-        insert_ball(balls_array, BUFFER_W/2, BUFFER_H - PA_MARGIN_H_BOTTOM - 10, BALL_SIZE, BALL_COLOR);
+        insert_ball(balls_array, BUFFER_W/2, BUFFER_H - PA_MARGIN_H_BOTTOM - 20, BALL_SIZE, BALL_COLOR);
 
     create_box_row(boxs_array, level);
 
@@ -458,13 +457,15 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                             launching_balls = false;
                            // create_box_row(boxs_array, level);
                         }
+                        else
+                        {
+                            launch_ball(balls_array, balls_launched, balls_array->a_ball[balls_launched].x, balls_array->a_ball[balls_launched].y, mouse_state.x/DISP_SCALE, mouse_state.y/DISP_SCALE, BALL_SPEED);
 
-                        launch_ball(balls_array, balls_launched, balls_array->a_ball[balls_launched].x, balls_array->a_ball[balls_launched].y, mouse_state.x/DISP_SCALE, mouse_state.y/DISP_SCALE, BALL_SPEED);
+                            balls_array->a_ball[balls_launched].at_bottom = false;
+                            balls_launched++;
 
-                        balls_array->a_ball[balls_launched].at_bottom = false;
-                        balls_launched++;
-
-                        time_last_ball_launch = al_get_time();
+                            time_last_ball_launch = al_get_time();
+                        }
                     }
 
 
