@@ -219,18 +219,24 @@ void update_balls(Balls *p_balls, Boxs *boxs_array)
         else if(ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, &index_box_collide))
         {
             #ifdef DEBUG
-                log_info("update_balls", "The ball %d collide with the box %d!", i, index_box_collide);
+                log_info("update_balls", "The ball %d collide with the box %d! (%.2f, %.2f)", i, index_box_collide, p_balls->a_ball[i].x, p_balls->a_ball[i].y);
             #endif
-            /* Hit the left o right side */
-            if(boxs_array->a_box[i].x_right < p_balls->a_ball[i].x || boxs_array->a_box[i].x_left > p_balls->a_ball[i].x)
+            /* Hit the left or right side */
+            if(boxs_array->a_box[index_box_collide].x_right < p_balls->a_ball[i].x || boxs_array->a_box[index_box_collide].x_left > p_balls->a_ball[i].x)
             {
                 /* Colide, so undo the movement */
-                p_balls->a_ball[i].y_vel *= -1;  
+                p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
+                p_balls->a_ball[i].y -= p_balls->a_ball[i].y_vel;
+
+                p_balls->a_ball[i].x_vel *= -1;  
             }
             /* Hit the top or bottom */
             else
             {
-                p_balls->a_ball[i].x_vel *= -1;  
+                p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
+                p_balls->a_ball[i].y -= p_balls->a_ball[i].y_vel;
+
+                p_balls->a_ball[i].y_vel *= -1;  
             }
         }
 
@@ -251,12 +257,9 @@ bool collide_ball_and_box(Ball *p_ball, Box *p_box)
 /* Otherwise, return false */
 bool ball_collide_with_a_box(Ball *p_ball, Boxs *boxs_array, int *index_box_collide)
 {
-    for(int i = 0; i < boxs_array->num_boxs_allocated; i++)
+    for(int i = 0; i < boxs_array->num_boxs; i++)
         if(collide_ball_and_box(p_ball, &boxs_array->a_box[i]))
         {
-            #ifdef DEBUG
-                log_info("ball_collide_with_a_box", "Return true");
-            #endif
             *index_box_collide = i;
             return true;
         }
