@@ -76,6 +76,8 @@
 /* PROTOTYPES */
     void launch_ball(Balls *balls_array, int ball_index, float from_x, float from_y, float to_x, float to_y, float speed);
     bool ball_collide_with_a_box(Ball *p_ball, Boxs *boxs_array, int *index_box_collide);
+    void decrease_box_point(Boxs *boxs_array, int index);
+    void remove_box(Boxs *boxs_array, int index);
 
 
 Balls *create_balls_array(int size)
@@ -173,7 +175,7 @@ bool is_ball_moving(Balls *balls_array, int index)
     return !(balls_array->a_ball[index].x_vel == 0 && balls_array->a_ball[index].y_vel == 0);
 }
 
-void update_balls(Balls *p_balls, Boxs *boxs_array)
+void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array)
 {
     log_test_ptr(p_balls, "update_balls", "p_balls");
 
@@ -216,11 +218,14 @@ void update_balls(Balls *p_balls, Boxs *boxs_array)
             p_balls->a_ball[i].y_vel = 0;
         }
         /* Collide with a box */
-        else if(ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, &index_box_collide))
+        else if(ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, &index_box_collide) && boxs_array->a_box[index_box_collide].points >= 0)
         {
             #ifdef DEBUG
                 log_info("update_balls", "The ball %d collide with the box %d! (%.2f, %.2f)", i, index_box_collide, p_balls->a_ball[i].x, p_balls->a_ball[i].y);
             #endif
+
+            decrease_box_point(boxs_array, index_box_collide);
+
             /* Hit the left or right side */
             if(boxs_array->a_box[index_box_collide].x_right < p_balls->a_ball[i].x || boxs_array->a_box[index_box_collide].x_left > p_balls->a_ball[i].x)
             {
@@ -239,8 +244,12 @@ void update_balls(Balls *p_balls, Boxs *boxs_array)
                 p_balls->a_ball[i].y_vel *= -1;  
             }
         }
-
     }
+}
+
+void decrease_box_point(Boxs *boxs_array, int index)
+{
+    boxs_array->a_box[index].points -= 1;
 }
 
 bool collide_ball_and_box(Ball *p_ball, Box *p_box)
@@ -349,29 +358,51 @@ void insert_box(Boxs *boxs_array, float x, float y, float height, float width, i
 {
     log_test_ptr(boxs_array, "insert_box", "boxs_array");
 
-    if(boxs_array->num_boxs == boxs_array->num_boxs_allocated)
+
+    int i = 0;
+    while(boxs_array->a_box[i].points != 0 && i < boxs_array->num_boxs_allocated)
+        i++;
+
+    if(i == boxs_array->num_boxs_allocated)
     {
         log_error("insert_box", "There's not enough space in the box array for a new box!");
         exit(1);
     }
 
-    boxs_array->a_box[boxs_array->num_boxs].x_center = x; 
-    boxs_array->a_box[boxs_array->num_boxs].y_center = y; 
-    boxs_array->a_box[boxs_array->num_boxs].x_left = x - width / 2;
-    boxs_array->a_box[boxs_array->num_boxs].x_left = x - width / 2;
-    boxs_array->a_box[boxs_array->num_boxs].x_right = x + width / 2;
-    boxs_array->a_box[boxs_array->num_boxs].y_top = y + height / 2;
-    boxs_array->a_box[boxs_array->num_boxs].y_bottom =  y - height / 2;
-    boxs_array->a_box[boxs_array->num_boxs].box_color =  collor;
-    boxs_array->a_box[boxs_array->num_boxs].x_vel =  0;
-    boxs_array->a_box[boxs_array->num_boxs].y_vel =  0;
-    boxs_array->a_box[boxs_array->num_boxs].points =  points;
+    boxs_array->a_box[i].x_center = x; 
+    boxs_array->a_box[i].y_center = y; 
+    boxs_array->a_box[i].x_left = x - width / 2;
+    boxs_array->a_box[i].x_left = x - width / 2;
+    boxs_array->a_box[i].x_right = x + width / 2;
+    boxs_array->a_box[i].y_top = y + height / 2;
+    boxs_array->a_box[i].y_bottom =  y - height / 2;
+    boxs_array->a_box[i].box_color =  collor;
+    boxs_array->a_box[i].x_vel =  0;
+    boxs_array->a_box[i].y_vel =  0;
+    boxs_array->a_box[i].points =  points;
     
     boxs_array->num_boxs++;
 
     #ifdef DEBUG
         log_info("insert_box", "Box inserted at (%.2f,%.2f)!", x, y);
     #endif
+}
+
+void init_boxs_array(Boxs *boxs_array)
+{
+    for(int i = 0; i < boxs_array->num_boxs_allocated; i++)
+    {
+        boxs_array->a_box[i].x_center = 0; 
+        boxs_array->a_box[i].y_center = 0; 
+        boxs_array->a_box[i].x_left = 0;
+        boxs_array->a_box[i].x_left = 0;
+        boxs_array->a_box[i].x_right = 0;
+        boxs_array->a_box[i].y_top = 0;
+        boxs_array->a_box[i].y_bottom =  0;
+        boxs_array->a_box[i].x_vel =  0;
+        boxs_array->a_box[i].y_vel =  0;
+        boxs_array->a_box[i].points =  0;
+    }
 }
 
 void create_box_row(Boxs *boxs_array, int level)
@@ -407,18 +438,21 @@ void draw_boxs(Boxs *boxs_array, ALLEGRO_FONT *text_font)
     char a_points[10];
     for(int i = 0; i < boxs_array->num_boxs; i++)
     {
-        al_draw_filled_rectangle(boxs_array->a_box[i].x_left, boxs_array->a_box[i].y_top, boxs_array->a_box[i].x_right, boxs_array->a_box[i].y_bottom, SECONDARY_COLOR);
+        if(boxs_array->a_box[i].points >= 0)
+        {
+            al_draw_filled_rectangle(boxs_array->a_box[i].x_left, boxs_array->a_box[i].y_top, boxs_array->a_box[i].x_right, boxs_array->a_box[i].y_bottom, SECONDARY_COLOR);
 
-        snprintf(a_points, 10, "%d", boxs_array->a_box[i].points);
-        /* Draw points */
-        al_draw_text(
-            text_font,
-            PRIMARY_COLOR,
-            boxs_array->a_box[i].x_center,
-            boxs_array->a_box[i].y_center + (boxs_array->a_box[i].y_bottom - boxs_array->a_box[i].y_top) / 4,
-            ALLEGRO_ALIGN_CENTER,
-            a_points 
-        );
+            snprintf(a_points, 10, "%d", boxs_array->a_box[i].points);
+            /* Draw points */
+            al_draw_text(
+                text_font,
+                PRIMARY_COLOR,
+                boxs_array->a_box[i].x_center,
+                boxs_array->a_box[i].y_center + (boxs_array->a_box[i].y_bottom - boxs_array->a_box[i].y_top) / 4,
+                ALLEGRO_ALIGN_CENTER,
+                a_points 
+            );
+        }
     }
 }
 
@@ -474,6 +508,8 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     Boxs *boxs_array = create_boxs_array(ARRAY_BOXS_SIZE);
     log_test_ptr(boxs_array, "state_playing", "boxs_array");
 
+    init_boxs_array(boxs_array);
+
     for(int i = 0; i < 10; i++)
         insert_ball(balls_array, BUFFER_W/2, BUFFER_H - PA_MARGIN_H_BOTTOM - 20, BALL_SIZE, BALL_COLOR);
 
@@ -489,7 +525,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     disp_pre_draw(*buffer);
                     al_clear_to_color(al_map_rgb(0,0,0));
 
-                    update_balls(balls_array, boxs_array);
+                    update_balls_and_boxs(balls_array, boxs_array);
 
                     if(!new_row_created && !launching_balls && balls_ready_for_launch(balls_array))
                     {
