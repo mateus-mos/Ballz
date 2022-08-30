@@ -27,7 +27,7 @@
 //#define PA_MARGIN_H_BOTTOM BUFFER_H / 25 
 
 #define TIME_BETWEEN_LAUNCHED_BALLS 0.3
-#define BALL_SPEED 5 
+#define BALL_SPEED 4 
 #define BALL_SIZE 3
 #define BALL_HIT_BOTTOM_MARGIN 5
 
@@ -75,6 +75,7 @@
 
 /* PROTOTYPES */
     void launch_ball(Balls *balls_array, int ball_index, float from_x, float from_y, float to_x, float to_y, float speed);
+    bool ball_collide_with_a_box(Ball *p_ball, Boxs *boxs_array, int *index_box_collide);
 
 
 Balls *create_balls_array(int size)
@@ -172,7 +173,7 @@ bool is_ball_moving(Balls *balls_array, int index)
     return !(balls_array->a_ball[index].x_vel == 0 && balls_array->a_ball[index].y_vel == 0);
 }
 
-void update_balls(Balls *p_balls)
+void update_balls(Balls *p_balls, Boxs *boxs_array)
 {
     log_test_ptr(p_balls, "update_balls", "p_balls");
 
@@ -180,6 +181,8 @@ void update_balls(Balls *p_balls)
     {
         p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel;
         p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel;
+
+        int index_box_collide;
 
         /* Test collide with walls*/
         if(p_balls->a_ball[i].x > (BUFFER_W - PA_MARGIN_W_RIGHT) || p_balls->a_ball[i].x < PA_MARGIN_W_LEFT)
@@ -212,8 +215,52 @@ void update_balls(Balls *p_balls)
             p_balls->a_ball[i].x_vel = 0;
             p_balls->a_ball[i].y_vel = 0;
         }
+        /* Collide with a box */
+        else if(ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, &index_box_collide))
+        {
+            #ifdef DEBUG
+                log_info("update_balls", "The ball %d collide with the box %d!", i, index_box_collide);
+            #endif
+            /* Hit the left o right side */
+            if(boxs_array->a_box[i].x_right < p_balls->a_ball[i].x || boxs_array->a_box[i].x_left > p_balls->a_ball[i].x)
+            {
+                /* Colide, so undo the movement */
+                p_balls->a_ball[i].y_vel *= -1;  
+            }
+            /* Hit the top or bottom */
+            else
+            {
+                p_balls->a_ball[i].x_vel *= -1;  
+            }
+        }
 
     }
+}
+
+bool collide_ball_and_box(Ball *p_ball, Box *p_box)
+{
+    if((p_ball->x - BALL_SIZE) > p_box->x_right || (p_ball->x + BALL_SIZE) < p_box->x_left)
+        return false;
+    else if((p_ball->y - BALL_SIZE) > p_box->y_top || (p_ball->y + BALL_SIZE) < p_box->y_bottom)
+        return false;
+    
+    return true;
+}
+
+/* If the ball collide with a box, return true and the index in the 'index_box_collide' */
+/* Otherwise, return false */
+bool ball_collide_with_a_box(Ball *p_ball, Boxs *boxs_array, int *index_box_collide)
+{
+    for(int i = 0; i < boxs_array->num_boxs_allocated; i++)
+        if(collide_ball_and_box(p_ball, &boxs_array->a_box[i]))
+        {
+            #ifdef DEBUG
+                log_info("ball_collide_with_a_box", "Return true");
+            #endif
+            *index_box_collide = i;
+            return true;
+        }
+    return false;
 }
 
 void draw_balls(Balls *p_balls)
@@ -412,10 +459,10 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     int level = 1;
     double time_last_ball_launch = 0;
 
-    tittle_font = load_font(GREATE_FIGHTER_FONT, TITTLE_FONT_SIZE);
+    tittle_font = load_font(DEBUG_FONT, TITTLE_FONT_SIZE);
     log_test_ptr(tittle_font, "state_playing", "tittle_font");
 
-    text_font = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
+    text_font = load_font(DEBUG_FONT, TEXT_FONT_SIZE);
     log_test_ptr(text_font, "state_playing", "text_font");
 
     Balls *balls_array = create_balls_array(ARRAY_BALLS_SIZE);
@@ -439,7 +486,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     disp_pre_draw(*buffer);
                     al_clear_to_color(al_map_rgb(0,0,0));
 
-                    update_balls(balls_array);
+                    update_balls(balls_array, boxs_array);
 
                     if(!new_row_created && !launching_balls && balls_ready_for_launch(balls_array))
                     {

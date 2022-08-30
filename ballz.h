@@ -11,6 +11,8 @@
 
 #define FONTS_PATH "./Resources/Fonts/"
 #define GREATE_FIGHTER_FONT "GreatFighter-pKK1.ttf"
+#define LADY_RADICAL_FONT "LadyRadical2Regular-0yAz.ttf"
+#define DEBUG_FONT "DebugFreeTrial-MVdYB.otf"
 
 /* STATES */
     typedef enum {START, PLAYING, GAME_OVER, ENDGAME} State_t;
@@ -39,6 +41,8 @@
     void disp_post_draw(ALLEGRO_DISPLAY *, ALLEGRO_BITMAP *);
 
     void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font);
+    bool collide(int a_x1, int a_y1, int a_x2, int a_y2, int b_x1, int b_y1, int b_x2, int b_y2);
+
 
     
 

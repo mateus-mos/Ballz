@@ -176,10 +176,10 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
     ALLEGRO_FONT * tittle_font;
     ALLEGRO_FONT * text_font;
 
-    tittle_font = load_font(GREATE_FIGHTER_FONT, TITTLE_FONT_SIZE);
+    tittle_font = load_font(DEBUG_FONT, TITTLE_FONT_SIZE);
     log_test_ptr(tittle_font, "state_start", "tittle_font");
 
-    text_font = load_font(GREATE_FIGHTER_FONT, TEXT_FONT_SIZE);
+    text_font = load_font(DEBUG_FONT, TEXT_FONT_SIZE);
     log_test_ptr(text_font, "state_start", "text_font");
 
     while(state == START)
