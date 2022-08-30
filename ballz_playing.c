@@ -360,7 +360,7 @@ void insert_box(Boxs *boxs_array, float x, float y, float height, float width, i
 
 
     int i = 0;
-    while(boxs_array->a_box[i].points != 0 && i < boxs_array->num_boxs_allocated)
+    while(boxs_array->a_box[i].points > 0 && i < boxs_array->num_boxs_allocated)
         i++;
 
     if(i == boxs_array->num_boxs_allocated)
@@ -436,7 +436,7 @@ void push_boxs_down(Boxs *boxs_array)
 void draw_boxs(Boxs *boxs_array, ALLEGRO_FONT *text_font)
 {
     char a_points[10];
-    for(int i = 0; i < boxs_array->num_boxs; i++)
+    for(int i = 0; i < boxs_array->num_boxs_allocated; i++)
     {
         if(boxs_array->a_box[i].points > 0)
         {
@@ -499,7 +499,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     tittle_font = load_font(DEBUG_FONT, TITTLE_FONT_SIZE);
     log_test_ptr(tittle_font, "state_playing", "tittle_font");
 
-    text_font = load_font(DEBUG_FONT, TEXT_FONT_SIZE);
+    text_font = load_font(JOY_STICK_FONT, TEXT_FONT_SIZE);
     log_test_ptr(text_font, "state_playing", "text_font");
 
     Balls *balls_array = create_balls_array(ARRAY_BALLS_SIZE);

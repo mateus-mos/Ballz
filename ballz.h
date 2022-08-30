@@ -13,6 +13,13 @@
 #define GREATE_FIGHTER_FONT "GreatFighter-pKK1.ttf"
 #define LADY_RADICAL_FONT "LadyRadical2Regular-0yAz.ttf"
 #define DEBUG_FONT "DebugFreeTrial-MVdYB.otf"
+#define BOSTMATIC_FONT "BotsmaticDemo-MXOr.ttf"
+#define ATARI_FONT "AtariClassicChunky-PxXP.ttf"
+#define SNES_FONT "SnesItalic-1G9Be.ttf"
+#define EVIL_EMPIRE_FONT "EvilEmpire-4BBVK.ttf"
+#define PIXEL_EMULATOR_FONT "PixelEmulator-xq08.ttf"
+#define GLUE_GUN_FONT "GlueGun-GW8Z.ttf"
+#define JOY_STICK_FONT "Joystick-5KjV.ttf"
 
 /* STATES */
     typedef enum {START, PLAYING, GAME_OVER, ENDGAME} State_t;
