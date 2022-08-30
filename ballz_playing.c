@@ -218,7 +218,7 @@ void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array)
             p_balls->a_ball[i].y_vel = 0;
         }
         /* Collide with a box */
-        else if(ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, &index_box_collide) && boxs_array->a_box[index_box_collide].points >= 0)
+        else if(ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, &index_box_collide) && boxs_array->a_box[index_box_collide].points > 0)
         {
             #ifdef DEBUG
                 log_info("update_balls", "The ball %d collide with the box %d! (%.2f, %.2f)", i, index_box_collide, p_balls->a_ball[i].x, p_balls->a_ball[i].y);
@@ -438,7 +438,7 @@ void draw_boxs(Boxs *boxs_array, ALLEGRO_FONT *text_font)
     char a_points[10];
     for(int i = 0; i < boxs_array->num_boxs; i++)
     {
-        if(boxs_array->a_box[i].points >= 0)
+        if(boxs_array->a_box[i].points > 0)
         {
             al_draw_filled_rectangle(boxs_array->a_box[i].x_left, boxs_array->a_box[i].y_top, boxs_array->a_box[i].x_right, boxs_array->a_box[i].y_bottom, SECONDARY_COLOR);
 
