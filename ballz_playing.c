@@ -61,7 +61,8 @@
         float x_vel;
         float y_vel;
         ALLEGRO_COLOR ball_color;
-        bool moving_to_master;
+        bool first_ball_to_hit_bottom;
+        bool is_moving_to_ball_master;
         bool at_bottom;
     } Ball;
 
@@ -141,7 +142,8 @@ void insert_ball(Balls *p_balls, float x, float y, float r, ALLEGRO_COLOR ball_c
     p_balls->a_ball[p_balls->num_balls].x_vel = 0;
     p_balls->a_ball[p_balls->num_balls].y_vel = 0;
     p_balls->a_ball[p_balls->num_balls].ball_color = ball_color;
-    p_balls->a_ball[p_balls->num_balls].moving_to_master = false;
+    p_balls->a_ball[p_balls->num_balls].first_ball_to_hit_bottom = false;
+    p_balls->a_ball[p_balls->num_balls].is_moving_to_ball_master = false;
 
    p_balls->num_balls++;
 
@@ -152,10 +154,20 @@ void insert_ball(Balls *p_balls, float x, float y, float r, ALLEGRO_COLOR ball_c
 
 bool collide_balls(Balls *balls_array, int index1, int index2)
 {
-    if(fabs(balls_array->a_ball[index1].x - balls_array->a_ball[index2].x) < 0.5)
-        if(fabs(balls_array->a_ball[index1].y - balls_array->a_ball[index2].y) < 0.5)
+    if(fabs(balls_array->a_ball[index1].x - balls_array->a_ball[index2].x) < 2)
+        if(fabs(balls_array->a_ball[index1].y - balls_array->a_ball[index2].y) < 2)
             return true;
     return false;
+}
+
+/* Return the index of master ball */
+/* If the master ball doesn't exist, return -1 */
+int index_master_ball(Balls *balls_array)
+{
+    for(int i = 0; i < balls_array->num_balls; i++)
+        if(balls_array->a_ball[i].first_ball_to_hit_bottom == true)
+            return i;
+    return -1;
 }
 
 void swap_balls(Balls *balls_array, int index1, int index2)
@@ -186,8 +198,27 @@ void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array)
 
         int index_box_collide;
 
+        /* It's moving to master ball */
+        if(p_balls->a_ball[i].is_moving_to_ball_master == true)
+        {
+            int index_m_ball = index_master_ball(p_balls);
+
+            if(collide_balls(p_balls, i, index_m_ball))
+            {
+                #ifdef DEBUG
+                    log_info("update_balls_and_boxs", "Ball %d hit the master ball %d", i, index_m_ball);
+                #endif
+                p_balls->a_ball[i].x_vel = 0;
+                p_balls->a_ball[i].y_vel = 0;
+
+                p_balls->a_ball[i].x = p_balls->a_ball[index_m_ball].x;
+                p_balls->a_ball[i].y = p_balls->a_ball[index_m_ball].y;
+
+                p_balls->a_ball[i].is_moving_to_ball_master = false;
+            }
+        }
         /* Test collide with walls*/
-        if(p_balls->a_ball[i].x > (BUFFER_W - PA_MARGIN_W_RIGHT) || p_balls->a_ball[i].x < PA_MARGIN_W_LEFT)
+        else if(p_balls->a_ball[i].x > (BUFFER_W - PA_MARGIN_W_RIGHT) || p_balls->a_ball[i].x < PA_MARGIN_W_LEFT)
         {
             /* Colide, so undo the movement */
             p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
@@ -216,6 +247,24 @@ void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array)
             p_balls->a_ball[i].at_bottom = true;
             p_balls->a_ball[i].x_vel = 0;
             p_balls->a_ball[i].y_vel = 0;
+
+            /* Check if it's the first ball to hit the bottom */
+            int index_m_ball = index_master_ball(p_balls); 
+            if(index_m_ball == -1)
+            {
+                p_balls->a_ball[i].at_bottom = true;
+                p_balls->a_ball[i].first_ball_to_hit_bottom = true;
+            }
+            /* Launch to master */
+            else
+            {
+                /* Check if the ball is already at right place with the master ball */
+                if(!collide_balls(p_balls, i, index_m_ball))
+                {
+                    launch_ball(p_balls, i, p_balls->a_ball[i].x, p_balls->a_ball[i].y, p_balls->a_ball[index_m_ball].x,  p_balls->a_ball[index_m_ball].y, BALL_SPEED - 2);
+                    p_balls->a_ball[i].is_moving_to_ball_master = true;
+                }
+            }
         }
         /* Collide with a box */
         else if(ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, &index_box_collide) && boxs_array->a_box[index_box_collide].points > 0)
@@ -303,9 +352,8 @@ void launch_ball(Balls *balls_array, int ball_index, float from_x, float from_y,
     balls_array->a_ball[ball_index].x_vel = A * k;
     balls_array->a_ball[ball_index].y_vel = B * k;
 
-
     #ifdef DEBUG
-        log_info("launch_ball", "Ball launched from (%.2f,%.2f) to (%.2f,%.2f)!", from_x, from_y, to_x, to_y);
+        log_info("launch_ball", "Ball %d launched from (%.2f,%.2f) to (%.2f,%.2f)!", ball_index, from_x, from_y, to_x, to_y);
     #endif
 
 }
@@ -315,7 +363,7 @@ void launch_all_balls(Balls *balls_array, float to_x, float to_y, float speed)
     for(int i = 0; i < balls_array->num_balls; i++)
     {
         launch_ball(balls_array, i, balls_array->a_ball[i].x, balls_array->a_ball[i].y, to_x, to_y, BALL_SPEED);
-        al_rest(0.5);
+        //al_rest(0.5);
     }
 }
 
@@ -488,6 +536,12 @@ void draw_hud(ALLEGRO_FONT *text_font, int level)
 
 }
 
+void reset_first_ball_to_hit_bottom(Balls *balls_array)
+{
+    for(int i = 0; i < balls_array->num_balls_allocated; i++)
+        balls_array->a_ball[i].first_ball_to_hit_bottom = false;
+}
+
 State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
 {
     State_t state = PLAYING;
@@ -537,6 +591,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
                     update_balls_and_boxs(balls_array, boxs_array);
 
+                    /* Check if the all boxes hit the bottom, if so spawn a new row */
                     if(!new_row_created && !launching_balls && balls_ready_for_launch(balls_array))
                     {
                         log_info("state_playing", "Ready for a new row");
@@ -544,15 +599,15 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                         push_boxs_down(boxs_array);
                         create_box_row(boxs_array, level);
                         new_row_created = true;
+                        reset_first_ball_to_hit_bottom(balls_array);
                     }
 
+                    /* Launch the balls */
                     if(launching_balls && !(time_last_ball_launch + TIME_BETWEEN_LAUNCHED_BALLS > al_get_time()))
                     {
+                        /* Launched all balls */
                         if(balls_launched == balls_array->num_balls)
-                        {
                             launching_balls = false;
-                           // create_box_row(boxs_array, level);
-                        }
                         else
                         {
                             launch_ball(balls_array, balls_launched, balls_array->a_ball[balls_launched].x, balls_array->a_ball[balls_launched].y, mouse_state.x/DISP_SCALE, mouse_state.y/DISP_SCALE, BALL_SPEED);
