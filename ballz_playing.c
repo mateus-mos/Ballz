@@ -414,9 +414,12 @@ void create_box_row(Boxs *boxs_array, int level)
 
     for(i = 0; i < N_BOXS_PER_ROW; i++)
     {
-        x = ((PA_W / N_BOXS_PER_ROW) / 2) + i * (PA_W / N_BOXS_PER_ROW);
-        y =  PA_MARGIN_H_TOP + (BUFFER_W / N_BOXS_PER_ROW) / 2;
-        insert_box(boxs_array, x, y, (BUFFER_W / N_BOXS_PER_ROW) * BOX_X_SCALE, (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE, level, SECONDARY_COLOR); 
+        if( (rand() % 2) == 1)
+        {
+            x = ((PA_W / N_BOXS_PER_ROW) / 2) + i * (PA_W / N_BOXS_PER_ROW);
+            y =  PA_MARGIN_H_TOP + (BUFFER_W / N_BOXS_PER_ROW) / 2;
+            insert_box(boxs_array, x, y, (BUFFER_W / N_BOXS_PER_ROW) * BOX_X_SCALE, (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE, level, SECONDARY_COLOR); 
+        }
     }
     #ifdef DEBUG
         log_info("create_box_row", "New row with %d boxs created!", i);
@@ -425,11 +428,14 @@ void create_box_row(Boxs *boxs_array, int level)
 
 void push_boxs_down(Boxs *boxs_array)
 {
-    for(int i = 0; i < boxs_array->num_boxs; i++)
+    for(int i = 0; i < boxs_array->num_boxs_allocated; i++)
     {
-        boxs_array->a_box[i].y_bottom += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
-        boxs_array->a_box[i].y_top += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
-        boxs_array->a_box[i].y_center += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
+        if(boxs_array->a_box[i].points > 0)
+        {
+            boxs_array->a_box[i].y_bottom += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
+            boxs_array->a_box[i].y_top += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
+            boxs_array->a_box[i].y_center += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
+        }
     }
 }
 
@@ -489,6 +495,10 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     ALLEGRO_MOUSE_STATE mouse_state;
     ALLEGRO_FONT * tittle_font;
     ALLEGRO_FONT * text_font;
+
+   /* Intializes random number generator */
+    time_t t;
+   srand((unsigned) time(&t));
 
     bool launching_balls = false;
     bool new_row_created = true;
