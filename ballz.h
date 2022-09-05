@@ -47,7 +47,7 @@
     void disp_pre_draw(ALLEGRO_BITMAP *);
     void disp_post_draw(ALLEGRO_DISPLAY *, ALLEGRO_BITMAP *);
 
-    void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font);
+    void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font, bool play_button_pressed);
     bool collide(int a_x1, int a_y1, int a_x2, int a_y2, int b_x1, int b_y1, int b_x2, int b_y2);
 
 

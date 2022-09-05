@@ -11,7 +11,7 @@
 #define START_BUTTON_PLAY_B_Y ((BUFFER_H / 12) * 7)
 
 /* PROTOTYPES */
-void hud_start_draw(ALLEGRO_FONT*, ALLEGRO_FONT*);
+void hud_start_draw(ALLEGRO_FONT*, ALLEGRO_FONT*, bool play_button_pressed);
 
 void ballz_init(void)
 {
@@ -107,8 +107,11 @@ bool play_button_clicked(ALLEGRO_MOUSE_STATE *mouse_state)
     );
 }
 
-void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font)
+void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font, bool play_button_pressed)
 {
+    float press_deslocation = 0;
+    if(play_button_pressed)
+        press_deslocation = 0.5;
 
     /* Shadow Tittle */
     al_draw_text(
@@ -132,10 +135,10 @@ void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font)
 
     /* Shadow play button */
     al_draw_filled_rounded_rectangle(
-        START_BUTTON_PLAY_A_X + START_BUTTON_PLAY_A_X/90,
-        START_BUTTON_PLAY_A_Y + START_BUTTON_PLAY_A_Y/90,
-        START_BUTTON_PLAY_B_X + START_BUTTON_PLAY_B_X/90,
-        START_BUTTON_PLAY_B_Y + START_BUTTON_PLAY_B_Y/90,
+        START_BUTTON_PLAY_A_X + START_BUTTON_PLAY_A_X/90 + press_deslocation,
+        START_BUTTON_PLAY_A_Y + START_BUTTON_PLAY_A_Y/90 + press_deslocation,
+        START_BUTTON_PLAY_B_X + START_BUTTON_PLAY_B_X/90 + press_deslocation,
+        START_BUTTON_PLAY_B_Y + START_BUTTON_PLAY_B_Y/90 + press_deslocation,
         10,
         10,
         SECONDARY_COLOR 
@@ -143,10 +146,10 @@ void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font)
     
     /* Play button */
     al_draw_filled_rounded_rectangle(
-        START_BUTTON_PLAY_A_X,
-        START_BUTTON_PLAY_A_Y,
-        START_BUTTON_PLAY_B_X,
-        START_BUTTON_PLAY_B_Y,
+        START_BUTTON_PLAY_A_X + press_deslocation,
+        START_BUTTON_PLAY_A_Y + press_deslocation,
+        START_BUTTON_PLAY_B_X + press_deslocation,
+        START_BUTTON_PLAY_B_Y + press_deslocation,
         10,
         10,
         PRIMARY_COLOR 
@@ -157,8 +160,8 @@ void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font)
         text_font,
         SECONDARY_COLOR, 
         /* Define position of the g_textFont based on the start button */
-        START_BUTTON_PLAY_A_X + (START_BUTTON_PLAY_B_X - START_BUTTON_PLAY_A_X)/2,
-        START_BUTTON_PLAY_A_Y + (START_BUTTON_PLAY_B_Y - START_BUTTON_PLAY_A_Y)/6,
+        START_BUTTON_PLAY_A_X + (START_BUTTON_PLAY_B_X - START_BUTTON_PLAY_A_X)/2 + press_deslocation,
+        START_BUTTON_PLAY_A_Y + (START_BUTTON_PLAY_B_Y - START_BUTTON_PLAY_A_Y)/6 + press_deslocation,
         ALLEGRO_ALIGN_CENTER,
         "Play"
     );
@@ -175,6 +178,8 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
     ALLEGRO_MOUSE_STATE mouse_state;
     ALLEGRO_FONT * tittle_font;
     ALLEGRO_FONT * text_font;
+
+    bool play_button_pressed = false;
 
     tittle_font = load_font(DEBUG_FONT, TITTLE_FONT_SIZE);
     log_test_ptr(tittle_font, "state_start", "tittle_font");
@@ -193,11 +198,18 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
                     disp_pre_draw(*buffer);
                     al_clear_to_color(al_map_rgb(0,0,0));
 
-                    hud_start_draw(tittle_font, text_font);
+                    hud_start_draw(tittle_font, text_font, play_button_pressed);
 
                     disp_post_draw(*disp, *buffer);
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                    al_get_mouse_state(&mouse_state);
+
+                    if(play_button_clicked(&mouse_state))
+                        play_button_pressed = true;
+
+                break;
+            case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
                     al_get_mouse_state(&mouse_state);
 
                     if(play_button_clicked(&mouse_state))
