@@ -26,6 +26,3 @@ ballz_playing.o: ballz_playing.c ballz_playing.h log.h
 
 log.o: log.c log.h
 	gcc -c $(CFLAGS) log.c 
-
-
- 

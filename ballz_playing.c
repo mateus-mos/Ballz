@@ -5,8 +5,9 @@
 #include <string.h>
 #include <math.h>
 
-#define ARRAY_BALLS_SIZE 100
-#define ARRAY_BOXS_SIZE  50 
+#define BALLS_ARRAY_SIZE 100
+#define BOXS_ARRAY_SIZE  50 
+#define OBJECTS_ARRAY_SIZE 50 
 
 /* PLAYABLE AREA */
 #define PA_W BUFFER_W 
@@ -30,6 +31,11 @@
 #define BALL_SPEED 4 
 #define BALL_SIZE 3
 #define BALL_HIT_BOTTOM_MARGIN 5
+
+#define OBJ_BALL 101
+#define OBJ_COIN 102
+#define OBJ_RADIUS 4 
+
 
 /* STRUCTS */
     typedef struct 
@@ -73,6 +79,29 @@
         int num_balls_allocated;
         Ball *a_ball;
     } Balls;
+
+    typedef struct 
+    {
+        float x;
+        float y;
+        float r;
+        bool free;
+        int object_id;
+    } Object;
+
+    typedef struct 
+    {
+        int num_obj_allocated;
+        Object *a_objects;
+    } Objects;
+
+    typedef struct
+    {
+        int level;
+        int coins;
+    } GameInfo;
+    
+    
 
 /* PROTOTYPES */
     void launch_ball(Balls *balls_array, int ball_index, float from_x, float from_y, float to_x, float to_y, float speed);
@@ -187,7 +216,34 @@ bool is_ball_moving(Balls *balls_array, int index)
     return !(balls_array->a_ball[index].x_vel == 0 && balls_array->a_ball[index].y_vel == 0);
 }
 
-void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array)
+bool collide_ball_and_obj(Ball *p_ball, Object *obj)
+{
+    if((p_ball->x - BALL_SIZE) > (obj->x + obj->r) || (p_ball->x + BALL_SIZE) < (obj->x - obj->r))
+        return false;
+    else if((p_ball->y - BALL_SIZE) > (obj->y + obj->r) || (p_ball->y + BALL_SIZE) < (obj->y - obj->r))
+        return false;
+    
+    return true;
+}
+
+bool ball_collide_with_an_object(Ball *p_ball, Objects *objs_array, int *index)
+{
+    for(int i = 0; i < objs_array->num_obj_allocated; i++)
+    {
+        if(!objs_array->a_objects[i].free && collide_ball_and_obj(p_ball, &objs_array->a_objects[i]))
+        {
+            #ifdef DEBUG
+                log_info("ball_collide_with_an_object", "An Ball hit the object %d!", i);
+            #endif
+            *index = i;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array, Objects *objs_array, GameInfo *g_info)
 {
     log_test_ptr(p_balls, "update_balls", "p_balls");
 
@@ -197,6 +253,7 @@ void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array)
         p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel;
 
         int index_box_collide;
+        int index_obj_collide;
 
         /* It's moving to master ball */
         if(p_balls->a_ball[i].is_moving_to_ball_master == true)
@@ -291,6 +348,15 @@ void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array)
                 p_balls->a_ball[i].y -= p_balls->a_ball[i].y_vel;
 
                 p_balls->a_ball[i].y_vel *= -1;  
+            }
+        }
+        /* Collide with an object */
+        else if(ball_collide_with_an_object(&p_balls->a_ball[i], objs_array, &index_obj_collide))
+        {
+            if(objs_array->a_objects[index_obj_collide].object_id == OBJ_COIN)
+            {
+                g_info->coins++;
+                objs_array->a_objects[index_obj_collide].free = true;
             }
         }
     }
@@ -453,20 +519,83 @@ void init_boxs_array(Boxs *boxs_array)
     }
 }
 
-void create_box_row(Boxs *boxs_array, int level)
+Objects *create_objects_array(int size)
+{
+    Objects *objs_array = malloc(sizeof(Objects));
+    log_test_ptr(objs_array, "create_objects_array", "objs_array");
+
+    objs_array->a_objects = malloc(sizeof(Object) * size);
+    log_test_ptr(objs_array->a_objects, "create_objects_array", "objs_array->a_objects");
+
+    objs_array->num_obj_allocated = size;
+
+    for(int i = 0; i < size; i++)
+        objs_array->a_objects[i].free = true;
+    
+    #ifdef DEBUG
+        log_info("create_objects_array", "Objects array created with size %d!", size);
+    #endif
+    return objs_array;
+}
+
+void destroy_objects_array(Objects *objs_array)
+{
+    free(objs_array->a_objects);
+    free(objs_array);
+}
+
+void insert_object(Objects *objs_array, float x, float y, int obj_id)
+{
+    int i = 0;
+    while (i < objs_array->num_obj_allocated && objs_array->a_objects[i].free == false)
+        i++;
+    
+    if(i >= objs_array->num_obj_allocated)
+    {
+        log_error("insert_object", "Couldn't insert an object! There's not enough space!");
+        exit(1);
+    }
+
+    objs_array->a_objects[i].object_id = obj_id;
+    objs_array->a_objects[i].x = x;
+    objs_array->a_objects[i].y = y;
+    objs_array->a_objects[i].free = false;
+    objs_array->a_objects[i].r = OBJ_RADIUS;
+
+    #ifdef DEBUG
+        log_info("insert_object", "Object %d inserted! (%.2f,%.2f)", obj_id, x, y);
+    #endif
+    
+}
+
+void create_row(Boxs *boxs_array, Objects *objs_array, int level)
 {
     log_test_ptr(boxs_array, "create_box_row", "boxs_array");
 
     int i;
-    float x, y;
 
     for(i = 0; i < N_BOXS_PER_ROW; i++)
     {
+
+        float x = ((PA_W / N_BOXS_PER_ROW) / 2) + i * (PA_W / N_BOXS_PER_ROW);
+        float y =  PA_MARGIN_H_TOP + (BUFFER_W / N_BOXS_PER_ROW) / 2;
+
+        /* Put a box on that position */
         if( (rand() % 2) == 1)
-        {
-            x = ((PA_W / N_BOXS_PER_ROW) / 2) + i * (PA_W / N_BOXS_PER_ROW);
-            y =  PA_MARGIN_H_TOP + (BUFFER_W / N_BOXS_PER_ROW) / 2;
             insert_box(boxs_array, x, y, (BUFFER_W / N_BOXS_PER_ROW) * BOX_X_SCALE, (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE, level, SECONDARY_COLOR); 
+        /* Put an object on that position */
+        else if( (rand() % 2) == 1)
+        {
+            if( (rand() % 2) == 1)
+            {
+                /* insert coin */
+                insert_object(objs_array, x, y, OBJ_COIN);
+            }
+            else
+            {
+                /* insert a ball */
+                insert_object(objs_array, x, y, OBJ_BALL);
+            }
         }
     }
     #ifdef DEBUG
@@ -474,7 +603,9 @@ void create_box_row(Boxs *boxs_array, int level)
     #endif
 }
 
-void push_boxs_down(Boxs *boxs_array)
+/* Return false if a box hit the bottom */
+/* otherwise, return true */
+bool push_boxs_down(Boxs *boxs_array)
 {
     for(int i = 0; i < boxs_array->num_boxs_allocated; i++)
     {
@@ -483,8 +614,18 @@ void push_boxs_down(Boxs *boxs_array)
             boxs_array->a_box[i].y_bottom += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
             boxs_array->a_box[i].y_top += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
             boxs_array->a_box[i].y_center += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
+
+            if(boxs_array->a_box[i].y_top > BUFFER_H)
+                return false;
         }
     }
+    return true;
+}
+
+void push_objs_down(Objects *objs_array)
+{
+    for(int i = 0; i < objs_array->num_obj_allocated; i++)
+        objs_array->a_objects[i].y += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
 }
 
 void draw_boxs(Boxs *boxs_array, ALLEGRO_FONT *text_font)
@@ -506,6 +647,21 @@ void draw_boxs(Boxs *boxs_array, ALLEGRO_FONT *text_font)
                 ALLEGRO_ALIGN_CENTER,
                 a_points 
             );
+        }
+    }
+}
+
+void draw_objects(Objects *objs_array)
+{
+    for(int i = 0; i < objs_array->num_obj_allocated; i++)
+    {
+        if(!objs_array->a_objects[i].free)
+        {
+            if(objs_array->a_objects[i].object_id == OBJ_COIN)
+            {
+                al_draw_filled_circle(objs_array->a_objects[i].x, objs_array->a_objects[i].y, objs_array->a_objects[i].r, PIXEL(233,173,3));
+                al_draw_circle(objs_array->a_objects[i].x, objs_array->a_objects[i].y, objs_array->a_objects[i].r, PIXEL(255, 223, 0), 2);
+            }
         }
     }
 }
@@ -551,6 +707,8 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     ALLEGRO_FONT * tittle_font;
     ALLEGRO_FONT * text_font;
 
+    GameInfo g_info;
+
    /* Intializes random number generator */
     time_t t;
     srand((unsigned) time(&t));
@@ -561,7 +719,9 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     bool launching_balls = false;
     bool new_row_created = true;
     int balls_launched = 0;
-    int level = 1;
+
+    g_info.level = 1;
+
     double time_last_ball_launch = 0;
 
     tittle_font = load_font(DEBUG_FONT, TITTLE_FONT_SIZE);
@@ -570,18 +730,20 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     text_font = load_font(JOY_STICK_FONT, TEXT_FONT_SIZE);
     log_test_ptr(text_font, "state_playing", "text_font");
 
-    Balls *balls_array = create_balls_array(ARRAY_BALLS_SIZE);
+    Balls *balls_array = create_balls_array(BALLS_ARRAY_SIZE);
     log_test_ptr(balls_array, "state_playing", "balls_array");
 
-    Boxs *boxs_array = create_boxs_array(ARRAY_BOXS_SIZE);
+    Boxs *boxs_array = create_boxs_array(BOXS_ARRAY_SIZE);
     log_test_ptr(boxs_array, "state_playing", "boxs_array");
+
+    Objects *objs_array = create_objects_array(OBJECTS_ARRAY_SIZE);
 
     init_boxs_array(boxs_array);
 
     for(int i = 0; i < 10; i++)
         insert_ball(balls_array, BUFFER_W/2, BUFFER_H - PA_MARGIN_H_BOTTOM - 20, BALL_SIZE, BALL_COLOR);
 
-    create_box_row(boxs_array, level);
+    create_row(boxs_array, objs_array, g_info.level);
 
     while(state == PLAYING)
     {
@@ -593,15 +755,27 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     disp_pre_draw(*buffer);
                     al_clear_to_color(al_map_rgb(0,0,0));
 
-                    update_balls_and_boxs(balls_array, boxs_array);
+                    update_balls_and_boxs(balls_array, boxs_array, objs_array, &g_info);
 
                     /* Check if the all boxes hit the bottom, if so spawn a new row */
                     if(!new_row_created && !launching_balls && balls_ready_for_launch(balls_array))
                     {
                         log_info("state_playing", "Ready for a new row");
-                        level++;
-                        push_boxs_down(boxs_array);
-                        create_box_row(boxs_array, level);
+                        g_info.level++;
+
+                        /* A box hit the bottom, so GAME OVER */
+                        if(!push_boxs_down(boxs_array))
+                        {
+                            #ifdef DEBUG
+                                log_info("state_playing", "Changing to GAME OVER state!");
+                            #endif
+
+                            return GAME_OVER;
+                        }
+
+                        push_objs_down(objs_array);
+
+                        create_row(boxs_array, objs_array, g_info.level);
                         new_row_created = true;
                         reset_first_ball_to_hit_bottom(balls_array);
                     }
@@ -631,9 +805,10 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     }
 
 
-                    draw_hud(text_font, level);
+                    draw_hud(text_font, g_info.level);
                     draw_boxs(boxs_array, text_font);
                     draw_balls(balls_array);
+                    draw_objects(objs_array);
 
                     disp_post_draw(*disp, *buffer);
                 break;
@@ -667,6 +842,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
     destroy_balls_array(balls_array);
     destroy_boxs_array(boxs_array);
+    destroy_objects_array(objs_array);
 
     al_destroy_font(tittle_font);
     al_destroy_font(text_font);
