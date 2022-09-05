@@ -512,8 +512,9 @@ void draw_boxs(Boxs *boxs_array, ALLEGRO_FONT *text_font)
 
 void draw_hud(ALLEGRO_FONT *text_font, int level)
 {
-    const char a_level = level + '0';
+    char a_level[10];
 
+    snprintf(a_level, 10, "%d", level);
 
     /* Draw Level */
     al_draw_text(
@@ -522,7 +523,7 @@ void draw_hud(ALLEGRO_FONT *text_font, int level)
         BUFFER_W / 2,
         (BUFFER_H - PA_H) / 2,
         ALLEGRO_ALIGN_CENTER,
-        &a_level 
+        a_level 
     );
 
 
