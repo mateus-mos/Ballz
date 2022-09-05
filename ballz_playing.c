@@ -20,7 +20,7 @@
 #define BOX_X_SCALE 0.8
 #define BOX_Y_SCALE 0.9
 
-
+#define AIM_RADIUS 50
 //#define PA_MARGIN_W_LEFT (BUFFER_W - PA_W) / 2
 //#define PA_MARGIN_W_RIGHT (BUFFER_W - PA_W) / 2
 //#define PA_MARGIN_H_TOP BUFFER_H / 25 
@@ -553,7 +553,10 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
    /* Intializes random number generator */
     time_t t;
-   srand((unsigned) time(&t));
+    srand((unsigned) time(&t));
+
+
+    bool draw_launch_line = false;
 
     bool launching_balls = false;
     bool new_row_created = true;
@@ -620,6 +623,13 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                         }
                     }
 
+                    if(draw_launch_line)
+                    {
+                        al_get_mouse_state(&mouse_state);
+
+                        al_draw_line(balls_array->a_ball[0].x, balls_array->a_ball[0].y, (float)(mouse_state.x) / DISP_SCALE, (float)(mouse_state.y) / DISP_SCALE,  SECONDARY_COLOR, 2);
+                    }
+
 
                     draw_hud(text_font, level);
                     draw_boxs(boxs_array, text_font);
@@ -629,14 +639,22 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
 
+                    /* Draw launch line */
+                    if(!launching_balls && balls_ready_for_launch(balls_array))
+                        draw_launch_line = true;
+
+                break;
+            case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
+
                     if(!launching_balls && balls_ready_for_launch(balls_array))
                     {
                         al_get_mouse_state(&mouse_state);
                         new_row_created = false;
                         launching_balls = true;
                         balls_launched = 0;
+                        draw_launch_line = false;
                     }
-
+                    
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                     state = ENDGAME;
