@@ -18,10 +18,6 @@ void ballz_init(void)
     srand(time(NULL));
 }
 
-void ballz_deinit(void)
-{
-}
-
 /* Initialize the display and the buffer */
 void disp_init(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer)
 {

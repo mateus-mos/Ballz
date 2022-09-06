@@ -44,6 +44,7 @@ int main(void)
         {
             case START: game_state = state_start(&disp, &buffer, queue);  break;
             case PLAYING: game_state = state_playing(&disp, &buffer, queue); break;
+            case GAME_OVER: state_game_over(&disp, &buffer, queue); break;
             default:
                 break;
         }

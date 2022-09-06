@@ -31,6 +31,8 @@
 #define BALL_SPEED 4 
 #define BALL_SIZE 3
 #define BALL_HIT_BOTTOM_MARGIN 5
+#define BALL_COLOR PIXEL(255, 255, 255)
+
 
 #define OBJ_BALL 101
 #define OBJ_COIN 102
@@ -334,23 +336,18 @@ void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array, Objects *objs_array
 
             decrease_box_point(boxs_array, index_box_collide);
 
+            p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
+            p_balls->a_ball[i].y -= p_balls->a_ball[i].y_vel;
+
             /* Hit the left or right side */
             if(boxs_array->a_box[index_box_collide].x_right < p_balls->a_ball[i].x || boxs_array->a_box[index_box_collide].x_left > p_balls->a_ball[i].x)
-            {
-                /* Colide, so undo the movement */
-                p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
-                p_balls->a_ball[i].y -= p_balls->a_ball[i].y_vel;
-
                 p_balls->a_ball[i].x_vel *= -1;  
-            }
             /* Hit the top or bottom */
             else
-            {
-                p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
-                p_balls->a_ball[i].y -= p_balls->a_ball[i].y_vel;
-
                 p_balls->a_ball[i].y_vel *= -1;  
-            }
+
+            p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel;
+            p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel;
         }
         /* Collide with an object */
         else if(ball_collide_with_an_object(&p_balls->a_ball[i], objs_array, &index_obj_collide))
