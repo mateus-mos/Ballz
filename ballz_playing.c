@@ -337,8 +337,8 @@ void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array, Objects *objs_array
             else
                 p_balls->a_ball[i].y_vel *= -1;  
 
-            p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel / 2;
-            p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel / 2;
+            p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel / 4;
+            p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel / 4;
         }
         /* Collide with an object */
         else if(ball_collide_with_an_object(&p_balls->a_ball[i], objs_array, &index_obj_collide))
