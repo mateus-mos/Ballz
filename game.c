@@ -1,7 +1,8 @@
-#include <stdlib.h>
-
 #include "ballz.h"
+#include "ballz_start.h"
 #include "ballz_playing.h"
+
+#include <stdlib.h>
 
 int main(void)
 {
@@ -44,7 +45,6 @@ int main(void)
         {
             case START: game_state = state_start(&disp, &buffer, queue);  break;
             case PLAYING: game_state = state_playing(&disp, &buffer, queue); break;
-            case GAME_OVER: state_game_over(&disp, &buffer, queue); break;
             default:
                 break;
         }
