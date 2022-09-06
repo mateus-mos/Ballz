@@ -1,6 +1,7 @@
 #include "ballz.h"
 #include "ballz_start.h"
 #include "ballz_playing.h"
+#include "ballz_game_over.h"
 
 #include <stdlib.h>
 
@@ -8,6 +9,8 @@ int main(void)
 {
     /* INITIALIZE COMPONENTS */
     must_init(al_init(), "allegro");
+
+    GameInfo g_info;
 
     ALLEGRO_DISPLAY* disp;
     ALLEGRO_BITMAP* buffer;
@@ -20,6 +23,7 @@ int main(void)
 
     disp_init(&disp, &buffer);
 
+    init_game_info(&g_info);
 
     must_init(al_install_mouse(), "install mouse");
     must_init(al_init_font_addon(), "font");
@@ -44,7 +48,8 @@ int main(void)
         switch (game_state)
         {
             case START: game_state = state_start(&disp, &buffer, queue);  break;
-            case PLAYING: game_state = state_playing(&disp, &buffer, queue); break;
+            case PLAYING: game_state = state_playing(&disp, &buffer, queue, &g_info); break;
+            case GAME_OVER: game_state = state_game_over(&disp, &buffer, queue, &g_info); break;
             default:
                 break;
         }

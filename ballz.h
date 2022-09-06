@@ -21,6 +21,13 @@
 #define GLUE_GUN_FONT "GlueGun-GW8Z.ttf"
 #define JOY_STICK_FONT "Joystick-5KjV.ttf"
 
+typedef struct
+    {
+        int level;
+        int coins;
+        int balls;
+    } GameInfo;
+
 /* STATES */
     typedef enum {START, PLAYING, GAME_OVER, ENDGAME} State_t;
 
@@ -40,6 +47,7 @@
 
     /* INIT AND DEINIT FUNCTIONS */
     void ballz_init(void);
+    void init_game_info(GameInfo *g_info);
     void ballz_deinit(void);
 
     void disp_init(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);
@@ -47,8 +55,8 @@
     void disp_pre_draw(ALLEGRO_BITMAP *);
     void disp_post_draw(ALLEGRO_DISPLAY *, ALLEGRO_BITMAP *);
 
-    void hud_start_draw(ALLEGRO_FONT* tittle_font, ALLEGRO_FONT* text_font, bool play_button_pressed);
     bool collide(int a_x1, int a_y1, int a_x2, int a_y2, int b_x1, int b_y1, int b_x2, int b_y2);
+    void draw_coin(float x, float y, float r);
 
 
     
@@ -62,4 +70,6 @@
 
     #define PRIMARY_COLOR                   PIXEL(242, 226, 5)
     #define SECONDARY_COLOR                 PIXEL(242, 5, 203)
+
+    #define COIN_RADIUS 4
 #endif

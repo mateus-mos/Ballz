@@ -4,6 +4,6 @@
 #include "ballz.h"
 
 /* API */
-    State_t state_playing(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **, ALLEGRO_EVENT_QUEUE *);
+    State_t state_playing(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **, ALLEGRO_EVENT_QUEUE *, GameInfo *g_info);
 
 #endif

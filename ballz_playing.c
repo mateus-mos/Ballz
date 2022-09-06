@@ -97,15 +97,6 @@
         Object *a_objects;
     } Objects;
 
-    typedef struct
-    {
-        int level;
-        int coins;
-        int balls;
-    } GameInfo;
-    
-    
-
 /* PROTOTYPES */
     void launch_ball(Balls *balls_array, int ball_index, float from_x, float from_y, float to_x, float to_y, float speed);
     bool ball_collide_with_a_box(Ball *p_ball, Boxs *boxs_array, int *index_box_collide);
@@ -346,8 +337,8 @@ void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array, Objects *objs_array
             else
                 p_balls->a_ball[i].y_vel *= -1;  
 
-            p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel;
-            p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel;
+            p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel / 2;
+            p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel / 2;
         }
         /* Collide with an object */
         else if(ball_collide_with_an_object(&p_balls->a_ball[i], objs_array, &index_obj_collide))
@@ -671,12 +662,6 @@ void draw_objects(Objects *objs_array)
     }
 }
 
-void draw_coin(float x, float y, float r)
-{
-    al_draw_filled_circle(x, y, r, PIXEL(233,173,3));
-    al_draw_circle(x, y, r, PIXEL(255, 223, 0), 2);
-}
-
 void draw_hud(ALLEGRO_FONT *text_font, GameInfo *g_info)
 {
     char a_level[10];
@@ -724,22 +709,13 @@ void reset_first_ball_to_hit_bottom(Balls *balls_array)
         balls_array->a_ball[i].first_ball_to_hit_bottom = false;
 }
 
-void init_game_info(GameInfo *g_info)
-{
-    g_info->balls = 1;
-    g_info->coins = 0;
-    g_info->level = 1;
-}
-
-State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue)
+State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue, GameInfo *g_info)
 {
     State_t state = PLAYING;
     ALLEGRO_EVENT event;
     ALLEGRO_MOUSE_STATE mouse_state;
     ALLEGRO_FONT * tittle_font;
     ALLEGRO_FONT * text_font;
-
-    GameInfo g_info;
 
    /* Intializes random number generator */
     time_t t;
@@ -754,8 +730,6 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
 
     double time_last_ball_launch = 0;
-
-    init_game_info(&g_info);
 
     tittle_font = load_font(DEBUG_FONT, TITTLE_FONT_SIZE);
     log_test_ptr(tittle_font, "state_playing", "tittle_font");
@@ -775,7 +749,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
     insert_ball(balls_array, BUFFER_W/2, BUFFER_H - PA_MARGIN_H_BOTTOM - 20, BALL_SIZE, BALL_COLOR);
 
-    create_row(boxs_array, objs_array, g_info.level);
+    create_row(boxs_array, objs_array, g_info->level);
 
     while(state == PLAYING)
     {
@@ -787,17 +761,17 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     disp_pre_draw(*buffer);
                     al_clear_to_color(al_map_rgb(0,0,0));
 
-                    update_balls_and_boxs(balls_array, boxs_array, objs_array, &g_info);
+                    update_balls_and_boxs(balls_array, boxs_array, objs_array, g_info);
 
                     /* Check if the all boxes hit the bottom, if so spawn a new row */
                     if(!new_row_created && !launching_balls && balls_ready_for_launch(balls_array))
                     {
                         log_info("state_playing", "Ready for a new row");
-                        g_info.level++;
+                        g_info->level++;
 
                         /* Spawn new balls */
-                        if(g_info.balls > balls_array->num_balls)
-                            for(int i = balls_array->num_balls; i < g_info.balls; i++)
+                        if(g_info->balls > balls_array->num_balls)
+                            for(int i = balls_array->num_balls; i < g_info->balls; i++)
                                 insert_ball(balls_array, balls_array->a_ball[0].x, balls_array->a_ball[0].y, BALL_SIZE, BALL_COLOR);
 
                         /* A box hit the bottom, so GAME OVER */
@@ -812,7 +786,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
                         push_objs_down(objs_array);
 
-                        create_row(boxs_array, objs_array, g_info.level);
+                        create_row(boxs_array, objs_array, g_info->level);
                         new_row_created = true;
                         reset_first_ball_to_hit_bottom(balls_array);
                     }
@@ -842,7 +816,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     }
 
 
-                    draw_hud(text_font, &g_info);
+                    draw_hud(text_font, g_info);
                     draw_boxs(boxs_array, text_font);
                     draw_balls(balls_array);
                     draw_objects(objs_array);

@@ -9,6 +9,12 @@ void ballz_init(void)
     srand(time(NULL));
 }
 
+void init_game_info(GameInfo *g_info)
+{
+    g_info->balls = 1;
+    g_info->coins = 0;
+    g_info->level = 1;
+}
 /* Initialize the display and the buffer */
 void disp_init(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer)
 {
@@ -50,6 +56,12 @@ void must_init(bool test, const char *description)
 
     fprintf(stderr, "[ERROR]: Initialization of [%s] failed!\n", description);
     exit(EXIT_FAILURE);
+}
+
+void draw_coin(float x, float y, float r)
+{
+    al_draw_filled_circle(x, y, r, PIXEL(233,173,3));
+    al_draw_circle(x, y, r, PIXEL(255, 223, 0), 2);
 }
 
 ALLEGRO_FONT* load_font(const char *font_name, int font_size)
