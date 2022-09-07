@@ -91,6 +91,7 @@ void insert_score(int *scores, int score)
 {
     int i = 0;
 
+    /* Find the position to insert the new score */
     while(i < N_SCORES_SAVED && scores[i] > score)
         i++;
     
@@ -102,8 +103,9 @@ void insert_score(int *scores, int score)
         return;
     }
 
-    for(int j = i; j < N_SCORES_SAVED - 1; j++)
-        scores[j+1] = scores[j];
+    /* Open space for the new score */
+    for(int j = N_SCORES_SAVED - 1; j > i; j--)
+        scores[j] = scores[j-1];
 
     scores[i] = score;
 
@@ -148,11 +150,9 @@ State_t state_game_over(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO
 
     ptr_score = fopen("./.score", "r");
 
-    if(!ptr_score)
-    {
-        log_error("state_game_over", "Pointer to file score is NULL!");
-        exit(1);
-    }
+    /* The score file doesn't exist, so create it */
+    if(ptr_score == NULL)
+        ptr_score = fopen("./.score", "w+");
 
     read_scores(ptr_score, scores);
 
