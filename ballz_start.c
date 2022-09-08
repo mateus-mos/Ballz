@@ -1,4 +1,6 @@
 #include "ballz_start.h"
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 /* Position of the button "Play" in the hud of the state START */
 #define START_BUTTON_PLAY_A_X (BUFFER_W / 12 * 5)
@@ -97,11 +99,19 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
 
     bool play_button_pressed = false;
 
+    must_init(al_install_audio(), "audio");
+    must_init(al_init_acodec_addon(), "audio codecs");
+    must_init(al_reserve_samples(16), "reserve samples");
+
     tittle_font = load_font(DEBUG_FONT, TITTLE_FONT_SIZE);
     log_test_ptr(tittle_font, "state_start", "tittle_font");
 
     text_font = load_font(DEBUG_FONT, TEXT_FONT_SIZE);
     log_test_ptr(text_font, "state_start", "text_font");
+
+
+    ALLEGRO_SAMPLE *s_megalovania = al_load_sample("./Resources/Music/megalovania.wav");
+    al_play_sample(s_megalovania, 1.0, 0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
 
     while(state == START)
     {
@@ -147,6 +157,7 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
         }
     }
 
+    al_destroy_sample(s_megalovania);
     al_destroy_font(tittle_font);
     al_destroy_font(text_font);
     return state;

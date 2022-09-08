@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 #define BALLS_ARRAY_SIZE 100
 #define BOXS_ARRAY_SIZE  50 
@@ -22,10 +24,6 @@
 #define BOX_Y_SCALE 0.9
 
 #define AIM_RADIUS 50
-//#define PA_MARGIN_W_LEFT (BUFFER_W - PA_W) / 2
-//#define PA_MARGIN_W_RIGHT (BUFFER_W - PA_W) / 2
-//#define PA_MARGIN_H_TOP BUFFER_H / 25 
-//#define PA_MARGIN_H_BOTTOM BUFFER_H / 25 
 
 #define TIME_BETWEEN_LAUNCHED_BALLS 0.3
 #define BALL_SPEED 4 
@@ -103,7 +101,151 @@
     void decrease_box_point(Boxs *boxs_array, int index);
     void remove_box(Boxs *boxs_array, int index);
     void draw_coin(float x, float y, float r);
+    bool collide_ball_and_box(Ball *p_ball, Box *p_box);
+    bool collide_ball_and_obj(Ball *p_ball, Object *obj);
 
+/* BOXs FUNCTIONS */
+
+void decrease_box_point(Boxs *boxs_array, int index)
+{
+    boxs_array->a_box[index].points -= 1;
+}
+
+Boxs *create_boxs_array(int size)
+{
+    Boxs *p_boxs = malloc(sizeof(Balls));
+    log_test_ptr(p_boxs, "create_boxs_array", "p_boxs");
+
+    p_boxs->a_box = malloc(sizeof(Box) * size);
+    log_test_ptr(p_boxs->a_box, "create_boxs_array", "p_boxs->a_box");
+
+    p_boxs->num_boxs = 0;
+    p_boxs->num_boxs_allocated = size;
+
+    #ifdef DEBUG
+        log_info("create_boxs_array", "Boxs Array created!");
+    #endif
+    return p_boxs;
+}
+
+void destroy_boxs_array(Boxs *boxs_array)
+{
+    free(boxs_array->a_box);
+    free(boxs_array);
+    #ifdef DEBUG
+        log_info("destroy_boxs_array", "Boxs Array destroyed!");
+    #endif
+}
+
+void insert_box(Boxs *boxs_array, float x, float y, float height, float width, int points, ALLEGRO_COLOR collor)
+{
+    log_test_ptr(boxs_array, "insert_box", "boxs_array");
+
+
+    int i = 0;
+    while(boxs_array->a_box[i].points > 0 && i < boxs_array->num_boxs_allocated)
+        i++;
+
+    if(i == boxs_array->num_boxs_allocated)
+    {
+        log_error("insert_box", "There's not enough space in the box array for a new box!");
+        exit(1);
+    }
+
+    boxs_array->a_box[i].x_center = x; 
+    boxs_array->a_box[i].y_center = y; 
+    boxs_array->a_box[i].x_left = x - width / 2;
+    boxs_array->a_box[i].x_left = x - width / 2;
+    boxs_array->a_box[i].x_right = x + width / 2;
+    boxs_array->a_box[i].y_top = y + height / 2;
+    boxs_array->a_box[i].y_bottom =  y - height / 2;
+    boxs_array->a_box[i].box_color =  collor;
+    boxs_array->a_box[i].x_vel =  0;
+    boxs_array->a_box[i].y_vel =  0;
+    boxs_array->a_box[i].points =  points;
+    
+    boxs_array->num_boxs++;
+
+    #ifdef DEBUG
+        log_info("insert_box", "Box inserted at (%.2f,%.2f)!", x, y);
+    #endif
+}
+
+void init_boxs_array(Boxs *boxs_array)
+{
+    for(int i = 0; i < boxs_array->num_boxs_allocated; i++)
+    {
+        boxs_array->a_box[i].x_center = 0; 
+        boxs_array->a_box[i].y_center = 0; 
+        boxs_array->a_box[i].x_left = 0;
+        boxs_array->a_box[i].x_left = 0;
+        boxs_array->a_box[i].x_right = 0;
+        boxs_array->a_box[i].y_top = 0;
+        boxs_array->a_box[i].y_bottom =  0;
+        boxs_array->a_box[i].x_vel =  0;
+        boxs_array->a_box[i].y_vel =  0;
+        boxs_array->a_box[i].points =  0;
+    }
+}
+
+/* OBJECTS FUNCTIONS */
+
+Objects *create_objects_array(int size)
+{
+    Objects *objs_array = malloc(sizeof(Objects));
+    log_test_ptr(objs_array, "create_objects_array", "objs_array");
+
+    objs_array->a_objects = malloc(sizeof(Object) * size);
+    log_test_ptr(objs_array->a_objects, "create_objects_array", "objs_array->a_objects");
+
+    objs_array->num_obj_allocated = size;
+
+    for(int i = 0; i < size; i++)
+        objs_array->a_objects[i].free = true;
+    
+    #ifdef DEBUG
+        log_info("create_objects_array", "Objects array created with size %d!", size);
+    #endif
+    return objs_array;
+}
+
+void destroy_objects_array(Objects *objs_array)
+{
+    free(objs_array->a_objects);
+    free(objs_array);
+}
+
+void insert_object(Objects *objs_array, float x, float y, int obj_id)
+{
+    int i = 0;
+    while (i < objs_array->num_obj_allocated && objs_array->a_objects[i].free == false)
+        i++;
+    
+    if(i >= objs_array->num_obj_allocated)
+    {
+        log_error("insert_object", "Couldn't insert an object! There's not enough space!");
+        exit(1);
+    }
+
+    objs_array->a_objects[i].object_id = obj_id;
+    objs_array->a_objects[i].x = x;
+    objs_array->a_objects[i].y = y;
+    objs_array->a_objects[i].free = false;
+    objs_array->a_objects[i].r = OBJ_RADIUS;
+
+    #ifdef DEBUG
+        log_info("insert_object", "Object %d inserted! (%.2f,%.2f)", obj_id, x, y);
+    #endif
+    
+}
+
+void push_objs_down(Objects *objs_array)
+{
+    for(int i = 0; i < objs_array->num_obj_allocated; i++)
+        objs_array->a_objects[i].y += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
+}
+
+/* BALL FUNCTIONS */
 
 Balls *create_balls_array(int size)
 {
@@ -211,187 +353,17 @@ bool is_ball_moving(Balls *balls_array, int index)
     return !(balls_array->a_ball[index].x_vel == 0 && balls_array->a_ball[index].y_vel == 0);
 }
 
-bool collide_ball_and_obj(Ball *p_ball, Object *obj)
-{
-    if((p_ball->x - BALL_SIZE) > (obj->x + obj->r) || (p_ball->x + BALL_SIZE) < (obj->x - obj->r))
-        return false;
-    else if((p_ball->y - BALL_SIZE) > (obj->y + obj->r) || (p_ball->y + BALL_SIZE) < (obj->y - obj->r))
-        return false;
-    
-    return true;
-}
-
-bool ball_collide_with_an_object(Ball *p_ball, Objects *objs_array, int *index)
-{
-    for(int i = 0; i < objs_array->num_obj_allocated; i++)
-    {
-        if(!objs_array->a_objects[i].free && collide_ball_and_obj(p_ball, &objs_array->a_objects[i]))
-        {
-            #ifdef DEBUG
-                log_info("ball_collide_with_an_object", "An Ball hit the object %d!", i);
-            #endif
-            *index = i;
-            return true;
-        }
-    }
-
-    return false;
-}
-
-void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array, Objects *objs_array, GameInfo *g_info)
-{
-    log_test_ptr(p_balls, "update_balls", "p_balls");
-
-    for(int i = 0; i < p_balls->num_balls; i++)
-    {
-        p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel;
-        p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel;
-
-        int index_box_collide;
-        int index_obj_collide;
-
-        /* It's moving to master ball */
-        if(p_balls->a_ball[i].is_moving_to_ball_master == true)
-        {
-            int index_m_ball = index_master_ball(p_balls);
-
-            if(collide_balls(p_balls, i, index_m_ball))
-            {
-                #ifdef DEBUG
-                    log_info("update_balls_and_boxs", "Ball %d hit the master ball %d", i, index_m_ball);
-                #endif
-                p_balls->a_ball[i].x_vel = 0;
-                p_balls->a_ball[i].y_vel = 0;
-
-                p_balls->a_ball[i].x = p_balls->a_ball[index_m_ball].x;
-                p_balls->a_ball[i].y = p_balls->a_ball[index_m_ball].y;
-
-                p_balls->a_ball[i].is_moving_to_ball_master = false;
-            }
-        }
-        /* Test collide with walls*/
-        else if(p_balls->a_ball[i].x > (BUFFER_W - PA_MARGIN_W_RIGHT) || p_balls->a_ball[i].x < PA_MARGIN_W_LEFT)
-        {
-            /* Colide, so undo the movement */
-            p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
-            p_balls->a_ball[i].y -= p_balls->a_ball[i].y_vel;
-
-            p_balls->a_ball[i].x_vel *= -1;  
-        }
-        /* Test collide with the top */
-        else if(p_balls->a_ball[i].y < PA_MARGIN_H_TOP)
-        {
-            p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
-            p_balls->a_ball[i].y -= p_balls->a_ball[i].y_vel;
-
-            p_balls->a_ball[i].y_vel *= -1;  
-        }
-        /* Hit the bottom */
-        else if(ball_hit_the_bottom(p_balls, i))
-        {
-            #ifdef DEBUG
-                log_info("update_balls", "The ball with index %d hit the bottom", i);
-            #endif
-
-            p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
-            p_balls->a_ball[i].y -= p_balls->a_ball[i].y_vel;
-
-            p_balls->a_ball[i].at_bottom = true;
-            p_balls->a_ball[i].x_vel = 0;
-            p_balls->a_ball[i].y_vel = 0;
-
-            /* Check if it's the first ball to hit the bottom */
-            int index_m_ball = index_master_ball(p_balls); 
-            if(index_m_ball == -1)
-            {
-                p_balls->a_ball[i].at_bottom = true;
-                p_balls->a_ball[i].first_ball_to_hit_bottom = true;
-            }
-            /* Launch to master */
-            else
-            {
-                /* Check if the ball is already at right place with the master ball */
-                if(!collide_balls(p_balls, i, index_m_ball))
-                {
-                    launch_ball(p_balls, i, p_balls->a_ball[i].x, p_balls->a_ball[i].y, p_balls->a_ball[index_m_ball].x,  p_balls->a_ball[index_m_ball].y, BALL_SPEED - 2);
-                    p_balls->a_ball[i].is_moving_to_ball_master = true;
-                }
-            }
-        }
-        /* Collide with a box */
-        else if(ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, &index_box_collide) && boxs_array->a_box[index_box_collide].points > 0)
-        {
-            #ifdef DEBUG
-                log_info("update_balls", "The ball %d collide with the box %d! (%.2f, %.2f)", i, index_box_collide, p_balls->a_ball[i].x, p_balls->a_ball[i].y);
-            #endif
-
-            decrease_box_point(boxs_array, index_box_collide);
-
-            p_balls->a_ball[i].x -= p_balls->a_ball[i].x_vel;
-            p_balls->a_ball[i].y -= p_balls->a_ball[i].y_vel;
-
-            /* Hit the left or right side */
-            if(boxs_array->a_box[index_box_collide].x_right < p_balls->a_ball[i].x || boxs_array->a_box[index_box_collide].x_left > p_balls->a_ball[i].x)
-                p_balls->a_ball[i].x_vel *= -1;  
-            /* Hit the top or bottom */
-            else
-                p_balls->a_ball[i].y_vel *= -1;  
-
-            p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel / 4;
-            p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel / 4;
-        }
-        /* Collide with an object */
-        else if(ball_collide_with_an_object(&p_balls->a_ball[i], objs_array, &index_obj_collide))
-        {
-            if(objs_array->a_objects[index_obj_collide].object_id == OBJ_COIN)
-            {
-                g_info->coins++;
-                objs_array->a_objects[index_obj_collide].free = true;
-            }
-            else if(objs_array->a_objects[index_obj_collide].object_id == OBJ_BALL)
-            {
-                g_info->balls++;
-                objs_array->a_objects[index_obj_collide].free = true;
-            }
-        }
-    }
-}
-
-void decrease_box_point(Boxs *boxs_array, int index)
-{
-    boxs_array->a_box[index].points -= 1;
-}
-
-bool collide_ball_and_box(Ball *p_ball, Box *p_box)
-{
-    if((p_ball->x - BALL_SIZE) > p_box->x_right || (p_ball->x + BALL_SIZE) < p_box->x_left)
-        return false;
-    else if((p_ball->y - BALL_SIZE) > p_box->y_top || (p_ball->y + BALL_SIZE) < p_box->y_bottom)
-        return false;
-    
-    return true;
-}
-
 /* If the ball collide with a box, return true and the index in the 'index_box_collide' */
 /* Otherwise, return false */
 bool ball_collide_with_a_box(Ball *p_ball, Boxs *boxs_array, int *index_box_collide)
 {
-    for(int i = 0; i < boxs_array->num_boxs; i++)
+    for(int i = 0; i < boxs_array->num_boxs_allocated; i++)
         if(collide_ball_and_box(p_ball, &boxs_array->a_box[i]))
         {
             *index_box_collide = i;
             return true;
         }
     return false;
-}
-
-void draw_balls(Balls *p_balls)
-{
-    log_test_ptr(p_balls, "update_balls", "p_balls");
-
-    for(int i = 0; i < p_balls->num_balls; i++)
-       al_draw_filled_circle(p_balls->a_ball[i].x, p_balls->a_ball[i].y, p_balls->a_ball[i].r, BALL_COLOR); 
-
 }
 
 void launch_ball(Balls *balls_array, int ball_index, float from_x, float from_y, float to_x, float to_y, float speed)
@@ -437,165 +409,234 @@ bool balls_ready_for_launch(Balls *balls_array)
     return true;
 }
 
-Boxs *create_boxs_array(int size)
+bool collide_ball_and_box(Ball *p_ball, Box *p_box)
 {
-    Boxs *p_boxs = malloc(sizeof(Balls));
-    log_test_ptr(p_boxs, "create_boxs_array", "p_boxs");
-
-    p_boxs->a_box = malloc(sizeof(Box) * size);
-    log_test_ptr(p_boxs->a_box, "create_boxs_array", "p_boxs->a_box");
-
-    p_boxs->num_boxs = 0;
-    p_boxs->num_boxs_allocated = size;
-
-    #ifdef DEBUG
-        log_info("create_boxs_array", "Boxs Array created!");
-    #endif
-    return p_boxs;
-}
-
-void destroy_boxs_array(Boxs *boxs_array)
-{
-    free(boxs_array->a_box);
-    free(boxs_array);
-    #ifdef DEBUG
-        log_info("destroy_boxs_array", "Boxs Array destroyed!");
-    #endif
-}
-
-void insert_box(Boxs *boxs_array, float x, float y, float height, float width, int points, ALLEGRO_COLOR collor)
-{
-    log_test_ptr(boxs_array, "insert_box", "boxs_array");
-
-
-    int i = 0;
-    while(boxs_array->a_box[i].points > 0 && i < boxs_array->num_boxs_allocated)
-        i++;
-
-    if(i == boxs_array->num_boxs_allocated)
-    {
-        log_error("insert_box", "There's not enough space in the box array for a new box!");
-        exit(1);
-    }
-
-    boxs_array->a_box[i].x_center = x; 
-    boxs_array->a_box[i].y_center = y; 
-    boxs_array->a_box[i].x_left = x - width / 2;
-    boxs_array->a_box[i].x_left = x - width / 2;
-    boxs_array->a_box[i].x_right = x + width / 2;
-    boxs_array->a_box[i].y_top = y + height / 2;
-    boxs_array->a_box[i].y_bottom =  y - height / 2;
-    boxs_array->a_box[i].box_color =  collor;
-    boxs_array->a_box[i].x_vel =  0;
-    boxs_array->a_box[i].y_vel =  0;
-    boxs_array->a_box[i].points =  points;
+    if((p_ball->x - BALL_SIZE) > p_box->x_right || (p_ball->x + BALL_SIZE) < p_box->x_left)
+        return false;
+    else if((p_ball->y - BALL_SIZE) > p_box->y_top || (p_ball->y + BALL_SIZE) < p_box->y_bottom)
+        return false;
     
-    boxs_array->num_boxs++;
-
-    #ifdef DEBUG
-        log_info("insert_box", "Box inserted at (%.2f,%.2f)!", x, y);
-    #endif
+    return true;
 }
 
-void init_boxs_array(Boxs *boxs_array)
+void reset_first_ball_to_hit_bottom(Balls *balls_array)
 {
-    for(int i = 0; i < boxs_array->num_boxs_allocated; i++)
+    for(int i = -1; i < balls_array->num_balls_allocated; i++)
+        balls_array->a_ball[i].first_ball_to_hit_bottom = false;
+}
+
+bool ball_collide_with_an_object(Ball *p_ball, Objects *objs_array, int *index)
+{
+    for(int i = 0; i < objs_array->num_obj_allocated; i++)
     {
-        boxs_array->a_box[i].x_center = 0; 
-        boxs_array->a_box[i].y_center = 0; 
-        boxs_array->a_box[i].x_left = 0;
-        boxs_array->a_box[i].x_left = 0;
-        boxs_array->a_box[i].x_right = 0;
-        boxs_array->a_box[i].y_top = 0;
-        boxs_array->a_box[i].y_bottom =  0;
-        boxs_array->a_box[i].x_vel =  0;
-        boxs_array->a_box[i].y_vel =  0;
-        boxs_array->a_box[i].points =  0;
-    }
-}
-
-Objects *create_objects_array(int size)
-{
-    Objects *objs_array = malloc(sizeof(Objects));
-    log_test_ptr(objs_array, "create_objects_array", "objs_array");
-
-    objs_array->a_objects = malloc(sizeof(Object) * size);
-    log_test_ptr(objs_array->a_objects, "create_objects_array", "objs_array->a_objects");
-
-    objs_array->num_obj_allocated = size;
-
-    for(int i = 0; i < size; i++)
-        objs_array->a_objects[i].free = true;
-    
-    #ifdef DEBUG
-        log_info("create_objects_array", "Objects array created with size %d!", size);
-    #endif
-    return objs_array;
-}
-
-void destroy_objects_array(Objects *objs_array)
-{
-    free(objs_array->a_objects);
-    free(objs_array);
-}
-
-void insert_object(Objects *objs_array, float x, float y, int obj_id)
-{
-    int i = 0;
-    while (i < objs_array->num_obj_allocated && objs_array->a_objects[i].free == false)
-        i++;
-    
-    if(i >= objs_array->num_obj_allocated)
-    {
-        log_error("insert_object", "Couldn't insert an object! There's not enough space!");
-        exit(1);
-    }
-
-    objs_array->a_objects[i].object_id = obj_id;
-    objs_array->a_objects[i].x = x;
-    objs_array->a_objects[i].y = y;
-    objs_array->a_objects[i].free = false;
-    objs_array->a_objects[i].r = OBJ_RADIUS;
-
-    #ifdef DEBUG
-        log_info("insert_object", "Object %d inserted! (%.2f,%.2f)", obj_id, x, y);
-    #endif
-    
-}
-
-void create_row(Boxs *boxs_array, Objects *objs_array, int level)
-{
-    log_test_ptr(boxs_array, "create_box_row", "boxs_array");
-
-    int i;
-
-    for(i = 0; i < N_BOXS_PER_ROW; i++)
-    {
-
-        float x = ((PA_W / N_BOXS_PER_ROW) / 2) + i * (PA_W / N_BOXS_PER_ROW);
-        float y =  PA_MARGIN_H_TOP + (BUFFER_W / N_BOXS_PER_ROW) / 2;
-
-        /* Put a box on that position */
-        if( (rand() % 2) == 1)
-            insert_box(boxs_array, x, y, (BUFFER_W / N_BOXS_PER_ROW) * BOX_X_SCALE, (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE, level, SECONDARY_COLOR); 
-        /* Put an object on that position */
-        else if( (rand() % 2) == 1)
+        if(!objs_array->a_objects[i].free && collide_ball_and_obj(p_ball, &objs_array->a_objects[i]))
         {
-            if( (rand() % 2) == 1)
-            {
-                /* insert coin */
-                insert_object(objs_array, x, y, OBJ_COIN);
-            }
-            else
-            {
-                /* insert a ball */
-                insert_object(objs_array, x, y, OBJ_BALL);
-            }
+            #ifdef DEBUG
+                log_info("ball_collide_with_an_object", "An Ball hit the object %d!", i);
+            #endif
+            *index = i;
+            return true;
         }
     }
-    #ifdef DEBUG
-        log_info("create_box_row", "New row with %d boxs created!", i);
-    #endif
+
+    return false;
+}
+
+bool handle_ball_moving_to_master(Balls *p_balls, int ball_index)
+{
+    p_balls->a_ball[ball_index].x += p_balls->a_ball[ball_index].x_vel;
+    p_balls->a_ball[ball_index].y += p_balls->a_ball[ball_index].y_vel;
+
+    if(p_balls->a_ball[ball_index].is_moving_to_ball_master == true)
+    {
+        int index_m_ball = index_master_ball(p_balls);
+
+        if(collide_balls(p_balls, ball_index, index_m_ball))
+        {
+            #ifdef DEBUG
+                log_info("update_balls_and_boxs", "Ball %d hit the master ball %d", ball_index, index_m_ball);
+            #endif
+            p_balls->a_ball[ball_index].x_vel = 0;
+            p_balls->a_ball[ball_index].y_vel = 0;
+
+            p_balls->a_ball[ball_index].x = p_balls->a_ball[index_m_ball].x;
+            p_balls->a_ball[ball_index].y = p_balls->a_ball[index_m_ball].y;
+
+            p_balls->a_ball[ball_index].is_moving_to_ball_master = false;
+
+            return true;
+        }
+    }
+
+    /* Didn't collide, so revert the move */
+    p_balls->a_ball[ball_index].x -= p_balls->a_ball[ball_index].x_vel;
+    p_balls->a_ball[ball_index].y -= p_balls->a_ball[ball_index].y_vel;
+
+    return false;
+}
+
+/* If the ball collides with a wall, handle the situation and return true */ 
+/* Otherwise, return false */
+bool handle_ball_collide_with_wall(Ball *p_ball, int ball_index)
+{
+    p_ball->x += p_ball->x_vel;
+    p_ball->y += p_ball->y_vel;
+
+    /* Test collide with walls*/
+    if(p_ball->x > (BUFFER_W - PA_MARGIN_W_RIGHT) || p_ball->x < PA_MARGIN_W_LEFT)
+    {
+        p_ball->x_vel *= -1;  
+
+        p_ball->x -= p_ball->x_vel;
+        p_ball->y -= p_ball->y_vel;
+
+        return true;
+    }
+
+    p_ball->x -= p_ball->x_vel;
+    p_ball->y -= p_ball->y_vel;
+
+    return false; 
+}
+
+/* If the ball collides with the top, handle the situation and return true */ 
+/* Otherwise, return false */
+bool handle_ball_collide_with_the_top(Ball *p_ball, int ball_index)
+{
+    p_ball->x += p_ball->x_vel;
+    p_ball->y += p_ball->y_vel;
+
+    /* Collide with the top */
+    if(p_ball->y < PA_MARGIN_H_TOP)
+    {
+        p_ball->x -= p_ball->x_vel;
+        p_ball->y -= p_ball->y_vel;
+
+        p_ball->y_vel *= -1;  
+
+        return true;
+    }
+
+    p_ball->x -= p_ball->x_vel;
+    p_ball->y -= p_ball->y_vel;
+
+    return false;
+}
+
+/* If the ball collides with the bottom, handle the situation and return true */ 
+/* Otherwise, return false */
+bool handle_ball_collide_with_the_bottom(Balls *p_balls, int ball_index)
+{
+    p_balls->a_ball[ball_index].x += p_balls->a_ball[ball_index].x_vel;
+    p_balls->a_ball[ball_index].y += p_balls->a_ball[ball_index].y_vel;
+
+    if(ball_hit_the_bottom(p_balls, ball_index))
+    {
+        #ifdef DEBUG
+            log_info("update_balls", "The ball with index %d hit the bottom", ball_index);
+        #endif
+
+        p_balls->a_ball[ball_index].x -= p_balls->a_ball[ball_index].x_vel;
+        p_balls->a_ball[ball_index].y -= p_balls->a_ball[ball_index].y_vel;
+
+        p_balls->a_ball[ball_index].at_bottom = true;
+        p_balls->a_ball[ball_index].x_vel = 0;
+        p_balls->a_ball[ball_index].y_vel = 0;
+
+        /* Check if it's the first ball to hit the bottom */
+        int index_m_ball = index_master_ball(p_balls); 
+        if(index_m_ball == -1)
+        {
+            p_balls->a_ball[ball_index].at_bottom = true;
+            p_balls->a_ball[ball_index].first_ball_to_hit_bottom = true;
+        }
+        /* Launch to master */
+        else
+        {
+            /* Check if the ball is already at right place with the master ball */
+            if(!collide_balls(p_balls, ball_index, index_m_ball))
+            {
+                launch_ball(p_balls, ball_index, p_balls->a_ball[ball_index].x, p_balls->a_ball[ball_index].y, p_balls->a_ball[index_m_ball].x,  p_balls->a_ball[index_m_ball].y, BALL_SPEED - 2);
+                p_balls->a_ball[ball_index].is_moving_to_ball_master = true;
+            }
+        }
+        return true;
+    }
+
+    p_balls->a_ball[ball_index].x -= p_balls->a_ball[ball_index].x_vel;
+    p_balls->a_ball[ball_index].y -= p_balls->a_ball[ball_index].y_vel;
+    return false;
+}
+
+bool handle_ball_collide_with_a_box(Ball *p_ball, Boxs *boxs_array, int ball_index)
+{
+    p_ball->x += p_ball->x_vel;
+    p_ball->y += p_ball->y_vel;
+
+    int index_box_collide;
+
+    if(ball_collide_with_a_box(p_ball, boxs_array, &index_box_collide) && (boxs_array->a_box[index_box_collide].points > 0))
+    {
+        #ifdef DEBUG
+            log_info("update_balls", "The ball %d collide with the box %d! (%.2f, %.2f)", ball_index, index_box_collide, p_ball->x, p_ball->y);
+        #endif
+
+        decrease_box_point(boxs_array, index_box_collide);
+
+        p_ball->x -= p_ball->x_vel;
+        p_ball->y -= p_ball->y_vel;
+
+        /* Hit the left or right side */
+        if(boxs_array->a_box[index_box_collide].x_right < p_ball->x || boxs_array->a_box[index_box_collide].x_left > p_ball->x)
+            p_ball->x_vel *= -1;  
+        /* Hit the top or bottom */
+        else
+            p_ball->y_vel *= -1;  
+
+        p_ball->x += p_ball->x_vel / 4;
+        p_ball->y += p_ball->y_vel / 4;
+
+        return true;
+    }
+
+    p_ball->x -= p_ball->x_vel;
+    p_ball->y -= p_ball->y_vel;
+
+    return false;
+}
+
+bool handle_ball_collide_with_an_object(Ball *p_ball, Objects *objs_array, GameInfo *g_info, int ball_index)
+{
+    int index_obj_collide;
+
+    if(ball_collide_with_an_object(p_ball, objs_array, &index_obj_collide))
+    {
+        if(objs_array->a_objects[index_obj_collide].object_id == OBJ_COIN)
+        {
+            g_info->coins++;
+            objs_array->a_objects[index_obj_collide].free = true;
+        }
+        else if(objs_array->a_objects[index_obj_collide].object_id == OBJ_BALL)
+        {
+            g_info->balls++;
+            objs_array->a_objects[index_obj_collide].free = true;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+/* DRAW FUNCTIONS */
+
+void draw_balls(Balls *p_balls)
+{
+    log_test_ptr(p_balls, "update_balls", "p_balls");
+
+    for(int i = 0; i < p_balls->num_balls; i++)
+       al_draw_filled_circle(p_balls->a_ball[i].x, p_balls->a_ball[i].y, p_balls->a_ball[i].r, BALL_COLOR); 
+
 }
 
 /* Return false if a box hit the bottom */
@@ -615,12 +656,6 @@ bool push_boxs_down(Boxs *boxs_array)
         }
     }
     return true;
-}
-
-void push_objs_down(Objects *objs_array)
-{
-    for(int i = 0; i < objs_array->num_obj_allocated; i++)
-        objs_array->a_objects[i].y += (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE;
 }
 
 void draw_boxs(Boxs *boxs_array, ALLEGRO_FONT *text_font)
@@ -703,12 +738,78 @@ void draw_hud(ALLEGRO_FONT *text_font, GameInfo *g_info)
 
 }
 
-void reset_first_ball_to_hit_bottom(Balls *balls_array)
+/* OTHERS */
+
+void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array, Objects *objs_array, GameInfo *g_info)
 {
-    for(int i = 0; i < balls_array->num_balls_allocated; i++)
-        balls_array->a_ball[i].first_ball_to_hit_bottom = false;
+    log_test_ptr(p_balls, "update_balls", "p_balls");
+    log_test_ptr(boxs_array, "boxs_array", "boxs_array");
+    log_test_ptr(objs_array, "objs_array", "objs_array");
+
+    for(int i = 0; i < p_balls->num_balls; i++)
+    {
+        
+        if(!handle_ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, i));
+
+        /* It's moving to master ball */
+        if(!handle_ball_moving_to_master(p_balls, i))
+            if(!handle_ball_collide_with_wall(&p_balls->a_ball[i], i))
+                if(!handle_ball_collide_with_the_top(&p_balls->a_ball[i], i))
+                    if(!handle_ball_collide_with_the_bottom(p_balls, i));
+                        
+        if(!handle_ball_collide_with_an_object(&p_balls->a_ball[i], objs_array, g_info, i));
+
+        p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel;
+        p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel;
+    }
 }
 
+bool collide_ball_and_obj(Ball *p_ball, Object *obj)
+{
+    if((p_ball->x - BALL_SIZE) > (obj->x + obj->r) || (p_ball->x + BALL_SIZE) < (obj->x - obj->r))
+        return false;
+    else if((p_ball->y - BALL_SIZE) > (obj->y + obj->r) || (p_ball->y + BALL_SIZE) < (obj->y - obj->r))
+        return false;
+    
+    return true;
+}
+
+void create_row(Boxs *boxs_array, Objects *objs_array, int level)
+{
+    log_test_ptr(boxs_array, "create_box_row", "boxs_array");
+
+    int i;
+
+    for(i = 0; i < N_BOXS_PER_ROW; i++)
+    {
+
+        float x = ((PA_W / N_BOXS_PER_ROW) / 2) + i * (PA_W / N_BOXS_PER_ROW);
+        float y =  PA_MARGIN_H_TOP + (BUFFER_W / N_BOXS_PER_ROW) / 2;
+
+        /* Put a box on that position */
+        if( (rand() % 2) == 1)
+            insert_box(boxs_array, x, y, (BUFFER_W / N_BOXS_PER_ROW) * BOX_X_SCALE, (BUFFER_W / N_BOXS_PER_ROW) * BOX_Y_SCALE, level, SECONDARY_COLOR); 
+        /* Put an object on that position */
+        else if( (rand() % 2) == 1)
+        {
+            if( (rand() % 2) == 1)
+            {
+                /* insert coin */
+                insert_object(objs_array, x, y, OBJ_COIN);
+            }
+            else
+            {
+                /* insert a ball */
+                insert_object(objs_array, x, y, OBJ_BALL);
+            }
+        }
+    }
+    #ifdef DEBUG
+        log_info("create_box_row", "New row with %d boxs created!", i);
+    #endif
+}
+
+/* STATE PLAYING */
 State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue, GameInfo *g_info)
 {
     State_t state = PLAYING;
@@ -717,10 +818,9 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     ALLEGRO_FONT * tittle_font;
     ALLEGRO_FONT * text_font;
 
-   /* Intializes random number generator */
+    /* Intializes random number generator */
     time_t t;
     srand((unsigned) time(&t));
-
 
     bool draw_launch_line = false;
 
@@ -728,8 +828,12 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     bool new_row_created = true;
     int balls_launched = 0;
 
-
     double time_last_ball_launch = 0;
+
+    /* Initialize Audio */
+    must_init(al_install_audio(), "audio");
+    must_init(al_init_acodec_addon(), "audio codecs");
+    must_init(al_reserve_samples(16), "reserve samples");
 
     tittle_font = load_font(DEBUG_FONT, TITTLE_FONT_SIZE);
     log_test_ptr(tittle_font, "state_playing", "tittle_font");
@@ -747,9 +851,15 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
     init_boxs_array(boxs_array);
 
+    ALLEGRO_SAMPLE *s_top_gear = al_load_sample("./Resources/Music/top_gear.wav");
+
+    /* Insert the first ball */
     insert_ball(balls_array, BUFFER_W/2, BUFFER_H - PA_MARGIN_H_BOTTOM - 20, BALL_SIZE, BALL_COLOR);
 
+    /* Create the first row */
     create_row(boxs_array, objs_array, g_info->level);
+
+    al_play_sample(s_top_gear, 1.0, 0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
 
     while(state == PLAYING)
     {
