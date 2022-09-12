@@ -23,8 +23,7 @@ int main(void)
 
     disp_init(&disp, &buffer);
 
-    init_game_info(&g_info);
-
+    must_init(al_install_keyboard(), "keyboard");
     must_init(al_install_mouse(), "install mouse");
     must_init(al_init_font_addon(), "font");
     must_init(al_init_ttf_addon(), "ttf");
@@ -33,6 +32,7 @@ int main(void)
     al_register_event_source(queue, al_get_display_event_source(disp));
     al_register_event_source(queue, al_get_timer_event_source(timer));
     al_register_event_source(queue, al_get_mouse_event_source());
+    al_register_event_source(queue, al_get_keyboard_event_source());
 
     ballz_init();
 

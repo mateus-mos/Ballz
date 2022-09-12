@@ -10,15 +10,7 @@
 #define PIXEL(r,g,b) (al_map_rgb((unsigned char) r, (unsigned char) g, (unsigned char) b))
 
 #define FONTS_PATH "./Resources/Fonts/"
-#define GREATE_FIGHTER_FONT "GreatFighter-pKK1.ttf"
-#define LADY_RADICAL_FONT "LadyRadical2Regular-0yAz.ttf"
 #define DEBUG_FONT "DebugFreeTrial-MVdYB.otf"
-#define BOSTMATIC_FONT "BotsmaticDemo-MXOr.ttf"
-#define ATARI_FONT "AtariClassicChunky-PxXP.ttf"
-#define SNES_FONT "SnesItalic-1G9Be.ttf"
-#define EVIL_EMPIRE_FONT "EvilEmpire-4BBVK.ttf"
-#define PIXEL_EMULATOR_FONT "PixelEmulator-xq08.ttf"
-#define GLUE_GUN_FONT "GlueGun-GW8Z.ttf"
 #define JOY_STICK_FONT "Joystick-5KjV.ttf"
 
 typedef struct
@@ -49,6 +41,7 @@ typedef struct
     void ballz_init(void);
     void init_game_info(GameInfo *g_info);
     void ballz_deinit(void);
+    void init_game_info(GameInfo *g_info);
 
     void disp_init(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);
     void disp_deinit(ALLEGRO_DISPLAY **, ALLEGRO_BITMAP **);

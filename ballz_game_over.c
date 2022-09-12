@@ -5,6 +5,12 @@
 
 #define N_SCORES_SAVED 5
 
+/* PLAY AGAIN BUTTON*/
+#define PLG_BUTTON_A_X BUFFER_W / 2 - 44
+#define PLG_BUTTON_A_Y BUFFER_H / 8 * 3.9 + N_SCORES_SAVED*15 + 9
+#define PLG_BUTTON_B_X BUFFER_W / 2 + 44
+#define PLG_BUTTON_B_Y BUFFER_H / 8 * 3.9 + N_SCORES_SAVED*15 + 24
+
 void draw_game_over_hud(ALLEGRO_FONT *tittle_font, ALLEGRO_FONT *text_font, GameInfo *g_info, int *scores)
 {
     char coins[10] = "\0";
@@ -31,7 +37,8 @@ void draw_game_over_hud(ALLEGRO_FONT *tittle_font, ALLEGRO_FONT *text_font, Game
         "G A M E O V E R"
     );
 
-    for(int i = 0; i < N_SCORES_SAVED; i++)
+    int i = 0;
+    for(i = 0; i < N_SCORES_SAVED; i++)
     {
         snprintf(score, 10, "%.3d", scores[i]);
         al_draw_text(
@@ -46,25 +53,15 @@ void draw_game_over_hud(ALLEGRO_FONT *tittle_font, ALLEGRO_FONT *text_font, Game
         draw_coin(BUFFER_W / 2 + 19, (BUFFER_H / 8) * 3.9 + i*15, COIN_RADIUS);
     }
 
-    //draw_coin(BUFFER_W / 2 + 20, (BUFFER_H / 8) * 4, COIN_RADIUS);
+    al_draw_text(
+        tittle_font,
+        PRIMARY_COLOR,
+        BUFFER_W / 2,
+        BUFFER_H / 8 * 3.9 + i*15 + 5,
+        ALLEGRO_ALIGN_CENTER,
+        "Play Again"
+    );
 
-    //al_draw_text(
-    //    tittle_font,
-    //    PRIMARY_COLOR,
-    //    BUFFER_W / 2 - 10,
-    //    (BUFFER_H / 8) * 3.6,
-    //    ALLEGRO_ALIGN_CENTER,
-    //    coins 
-    //);
-    //al_draw_text(
-    //    text_font,
-    //    SECONDARY_COLOR, 
-    //    /* Define position of the g_textFont based on the start button */
-    //    START_BUTTON_PLAY_A_X + (START_BUTTON_PLAY_B_X - START_BUTTON_PLAY_A_X)/2 + press_deslocation,
-    //    START_BUTTON_PLAY_A_Y + (START_BUTTON_PLAY_B_Y - START_BUTTON_PLAY_A_Y)/6 + press_deslocation,
-    //    ALLEGRO_ALIGN_CENTER,
-    //    "Play"
-    //);
 }
 
 void save_scores(FILE *ptr_scores, int *scores)
@@ -136,6 +133,23 @@ void init_scores(int *scores)
         scores[i] = 0;
 }
 
+bool button_play_again_pressed(ALLEGRO_MOUSE_STATE *mouse_state)
+{
+    return collide
+    (
+        mouse_state->x / DISP_SCALE,
+        mouse_state->y / DISP_SCALE,
+        mouse_state->x / DISP_SCALE,
+        mouse_state->y / DISP_SCALE,
+        /* Multiply by DISP_SCALE because the PLG_BUTTON coordinate is relative to the buffer */
+        /* and collide the mouse coordinate is relative to the display */
+        PLG_BUTTON_A_X,
+        PLG_BUTTON_A_Y, 
+        PLG_BUTTON_B_X,
+        PLG_BUTTON_B_Y 
+    );
+}
+
 State_t state_game_over(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue, GameInfo *g_info)
 {
     #ifdef DEBUG
@@ -189,27 +203,12 @@ State_t state_game_over(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO
             case ALLEGRO_EVENT_TIMER:
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
-                    al_get_mouse_state(&mouse_state);
-
-                    //if(play_button_clicked(&mouse_state))
-                    //    play_button_pressed = true;
-
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
-                    //al_get_mouse_state(&mouse_state);
+                    al_get_mouse_state(&mouse_state);
 
-                    //if(play_button_clicked(&mouse_state))
-                    //{
-                    //    #ifdef DEBUG
-                    //        log_info("state_start", "Button 'Play' pressed!");
-                    //        log_info("state_start", "Change state to PLAY!");
-                    //    #endif
-                    //    state = PLAYING;
-                    //}
-
-                    #ifdef DEBUG
-                        log_info("state_start", "Mouse Pressed!");
-                    #endif
+                    if(button_play_again_pressed(&mouse_state))
+                        state = PLAYING;
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                     state = ENDGAME;

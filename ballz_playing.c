@@ -36,6 +36,23 @@
 #define OBJ_COIN 102
 #define OBJ_RADIUS 4 
 
+/* MENU BUTTON */
+#define MENU_BUTTON_A_X BUFFER_W / 8 - 13
+#define MENU_BUTTON_A_Y 3 
+#define MENU_BUTTON_B_X BUFFER_W / 8 + 13
+#define MENU_BUTTON_B_Y PA_MARGIN_H_TOP - 2
+
+/* HOME BUTTON */
+#define HOME_BUTTON_A_X BUFFER_W / 2 - 12
+#define HOME_BUTTON_A_Y PA_MARGIN_H_TOP + 29
+#define HOME_BUTTON_B_X BUFFER_W / 2 + 11
+#define HOME_BUTTON_B_Y PA_MARGIN_H_TOP + 40
+
+/* SOUND BUTTON */
+#define SOUND_BUTTON_A_X BUFFER_W / 2 - 25
+#define SOUND_BUTTON_A_Y PA_MARGIN_H_TOP + 54 
+#define SOUND_BUTTON_B_X BUFFER_W / 2 + 25 
+#define SOUND_BUTTON_B_Y PA_MARGIN_H_TOP + 64 
 
 /* STRUCTS */
     typedef struct 
@@ -593,8 +610,8 @@ bool handle_ball_collide_with_a_box(Ball *p_ball, Boxs *boxs_array, int ball_ind
         else
             p_ball->y_vel *= -1;  
 
-        p_ball->x += p_ball->x_vel / 4;
-        p_ball->y += p_ball->y_vel / 4;
+        p_ball->x += p_ball->x_vel / 5;
+        p_ball->y += p_ball->y_vel / 5;
 
         return true;
     }
@@ -705,12 +722,14 @@ void draw_hud(ALLEGRO_FONT *text_font, GameInfo *g_info)
     snprintf(a_level, 10, "%.3d", g_info->level);
     snprintf(a_coins, 10, "%.3d", g_info->coins);
 
+    al_draw_filled_rectangle(0, 0, BUFFER_W, PA_MARGIN_H_TOP, PIXEL(37, 37, 37));
+
     /* Draw Level */
     al_draw_text(
         text_font,
         PRIMARY_COLOR,
         BUFFER_W / 2,
-        (BUFFER_H - PA_H) / 2,
+        0,
         ALLEGRO_ALIGN_CENTER,
         a_level 
     );
@@ -720,13 +739,25 @@ void draw_hud(ALLEGRO_FONT *text_font, GameInfo *g_info)
         text_font,
         PRIMARY_COLOR,
         (BUFFER_W / 8) * 6.5,
-        (BUFFER_H - PA_H) / 2,
+        0,
         ALLEGRO_ALIGN_CENTER,
         a_coins 
     );
 
     /* Draw coin */
-    draw_coin((BUFFER_W / 8) * 7.5, (BUFFER_H - PA_H) / 2 + 8, OBJ_RADIUS);
+    draw_coin((BUFFER_W / 8) * 7.5, 8, OBJ_RADIUS);
+
+    //al_draw_filled_rectangle(MENU_BUTTON_A_X, MENU_BUTTON_A_Y, MENU_BUTTON_B_X, MENU_BUTTON_B_Y, PIXEL(255, 255, 255));
+
+    /* Draw Menu Icon*/
+    al_draw_text(
+        text_font,
+        PRIMARY_COLOR,
+        (BUFFER_W / 8),
+        0,
+        ALLEGRO_ALIGN_CENTER,
+        "Menu"
+    );
 
     /* Draw vertical lines */
     //al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, PA_MARGIN_W_LEFT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
@@ -736,6 +767,103 @@ void draw_hud(ALLEGRO_FONT *text_font, GameInfo *g_info)
     //al_draw_line(PA_MARGIN_W_LEFT, PA_MARGIN_H_TOP, BUFFER_W - PA_MARGIN_W_RIGHT, PA_MARGIN_H_TOP, PRIMARY_COLOR, 2);
     //al_draw_line(PA_MARGIN_W_LEFT, BUFFER_H - PA_MARGIN_H_BOTTOM, BUFFER_W - PA_MARGIN_W_RIGHT, BUFFER_H - PA_MARGIN_H_BOTTOM, PRIMARY_COLOR, 2);
 
+}
+
+void draw_menu(ALLEGRO_FONT *text_font, bool sound_on)
+{
+    al_draw_filled_rectangle(PA_W/2 - 80, PA_MARGIN_H_TOP + 10, PA_W/2 + 80, BUFFER_H - 100, PIXEL(37, 37, 37));
+    al_draw_line(PA_W/2 - 80, PA_MARGIN_H_TOP + 10, PA_W/2 + 80, PA_MARGIN_H_TOP + 10, PRIMARY_COLOR, 2);
+    al_draw_line(PA_W/2 - 80, PA_MARGIN_H_TOP + 10, PA_W/2 - 80, BUFFER_H - 100, PRIMARY_COLOR, 2);
+    al_draw_line(PA_W/2 - 80, BUFFER_H - 100, PA_W/2 + 80, BUFFER_H - 100, PRIMARY_COLOR, 2);
+    al_draw_line(PA_W/2 + 80, BUFFER_H - 100, PA_W/2 + 80, PA_MARGIN_H_TOP + 10, PRIMARY_COLOR, 2);
+
+    /* Home */
+    al_draw_text(
+        text_font,
+        PRIMARY_COLOR,
+        (BUFFER_W / 2),
+        PA_MARGIN_H_TOP + 25,
+        ALLEGRO_ALIGN_CENTER,
+        "Home"
+    );
+
+    /* Sound*/
+    if(sound_on)
+    {
+        al_draw_text(
+            text_font,
+            PRIMARY_COLOR,
+            (BUFFER_W / 2),
+            PA_MARGIN_H_TOP + 50,
+            ALLEGRO_ALIGN_CENTER,
+            "Sound On"
+        );
+    }
+    else
+    {
+        al_draw_text(
+            text_font,
+            PRIMARY_COLOR,
+            (BUFFER_W / 2),
+            PA_MARGIN_H_TOP + 50,
+            ALLEGRO_ALIGN_CENTER,
+            "Sound Off"
+        );
+    }
+}
+
+void draw_help(ALLEGRO_FONT *text_font)
+{
+    al_draw_filled_rectangle(PA_W/2 - 80, PA_MARGIN_H_TOP + 10, PA_W/2 + 80, BUFFER_H - 100, PIXEL(37, 37, 37));
+    al_draw_line(PA_W/2 - 80, PA_MARGIN_H_TOP + 10, PA_W/2 + 80, PA_MARGIN_H_TOP + 10, PRIMARY_COLOR, 2);
+    al_draw_line(PA_W/2 - 80, PA_MARGIN_H_TOP + 10, PA_W/2 - 80, BUFFER_H - 100, PRIMARY_COLOR, 2);
+    al_draw_line(PA_W/2 - 80, BUFFER_H - 100, PA_W/2 + 80, BUFFER_H - 100, PRIMARY_COLOR, 2);
+    al_draw_line(PA_W/2 + 80, BUFFER_H - 100, PA_W/2 + 80, PA_MARGIN_H_TOP + 10, PRIMARY_COLOR, 2);
+
+    al_draw_text(
+        text_font,
+        PRIMARY_COLOR,
+        (BUFFER_W / 2 ),
+        PA_MARGIN_H_TOP + 25,
+        ALLEGRO_ALIGN_CENTER,
+        "Aperte e pressione para escolher em"
+    );
+
+    al_draw_text(
+        text_font,
+        PRIMARY_COLOR,
+        (BUFFER_W / 2),
+        PA_MARGIN_H_TOP + 35,
+        ALLEGRO_ALIGN_CENTER,
+        "que direção lançar a bola."
+    );
+
+    al_draw_text(
+        text_font,
+        PRIMARY_COLOR,
+        (BUFFER_W / 2),
+        PA_MARGIN_H_TOP + 55,
+        ALLEGRO_ALIGN_CENTER,
+        "Se alguma caixa passar do chão,"
+    );
+    
+    al_draw_text(
+        text_font,
+        PRIMARY_COLOR,
+        (BUFFER_W / 2),
+        PA_MARGIN_H_TOP + 65,
+        ALLEGRO_ALIGN_CENTER,
+        "você perde!"
+    );
+
+    al_draw_text(
+        text_font,
+        PRIMARY_COLOR,
+        (BUFFER_W / 2),
+        PA_MARGIN_H_TOP + 85,
+        ALLEGRO_ALIGN_CENTER,
+        "Criado por Mateus :D"
+    );
 }
 
 /* OTHERS */
@@ -749,7 +877,7 @@ void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array, Objects *objs_array
     for(int i = 0; i < p_balls->num_balls; i++)
     {
         
-        if(!handle_ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, i));
+        handle_ball_collide_with_a_box(&p_balls->a_ball[i], boxs_array, i);
 
         /* It's moving to master ball */
         if(!handle_ball_moving_to_master(p_balls, i))
@@ -757,7 +885,7 @@ void update_balls_and_boxs(Balls *p_balls, Boxs *boxs_array, Objects *objs_array
                 if(!handle_ball_collide_with_the_top(&p_balls->a_ball[i], i))
                     if(!handle_ball_collide_with_the_bottom(p_balls, i));
                         
-        if(!handle_ball_collide_with_an_object(&p_balls->a_ball[i], objs_array, g_info, i));
+        handle_ball_collide_with_an_object(&p_balls->a_ball[i], objs_array, g_info, i);
 
         p_balls->a_ball[i].x += p_balls->a_ball[i].x_vel;
         p_balls->a_ball[i].y += p_balls->a_ball[i].y_vel;
@@ -809,14 +937,70 @@ void create_row(Boxs *boxs_array, Objects *objs_array, int level)
     #endif
 }
 
+bool is_mouse_inside_playable_area(ALLEGRO_MOUSE_STATE *mouse_state)
+{
+    return  mouse_state->y / DISP_SCALE > PA_MARGIN_H_TOP;
+}
+
+bool button_menu_pressed(ALLEGRO_MOUSE_STATE *mouse_state)
+{
+    return collide
+    (
+        mouse_state->x / DISP_SCALE,
+        mouse_state->y / DISP_SCALE,
+        mouse_state->x / DISP_SCALE,
+        mouse_state->y / DISP_SCALE,
+        /* Multiply by DISP_SCALE because the MENU_BUTTON coordinate is relative to the buffer */
+        /* and collide the mouse coordinate is relative to the display */
+        MENU_BUTTON_A_X,
+        MENU_BUTTON_A_Y,
+        MENU_BUTTON_B_X,
+        MENU_BUTTON_B_Y
+    );
+}
+
+bool button_home_pressed(ALLEGRO_MOUSE_STATE *mouse_state)
+{
+    return collide
+    (
+        mouse_state->x / DISP_SCALE,
+        mouse_state->y / DISP_SCALE,
+        mouse_state->x / DISP_SCALE,
+        mouse_state->y / DISP_SCALE,
+        /* Multiply by DISP_SCALE because the MENU_BUTTON coordinate is relative to the buffer */
+        /* and collide the mouse coordinate is relative to the display */
+        HOME_BUTTON_A_X,
+        HOME_BUTTON_A_Y, 
+        HOME_BUTTON_B_X,
+        HOME_BUTTON_B_Y
+    );
+}
+
+bool button_sound_pressed(ALLEGRO_MOUSE_STATE *mouse_state)
+{
+    return collide
+    (
+        mouse_state->x / DISP_SCALE,
+        mouse_state->y / DISP_SCALE,
+        mouse_state->x / DISP_SCALE,
+        mouse_state->y / DISP_SCALE,
+        /* Multiply by DISP_SCALE because the MENU_BUTTON coordinate is relative to the buffer */
+        /* and collide the mouse coordinate is relative to the display */
+        SOUND_BUTTON_A_X,
+        SOUND_BUTTON_A_Y, 
+        SOUND_BUTTON_B_X,
+        SOUND_BUTTON_B_Y 
+    );
+}
+
 /* STATE PLAYING */
 State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVENT_QUEUE *queue, GameInfo *g_info)
 {
     State_t state = PLAYING;
     ALLEGRO_EVENT event;
     ALLEGRO_MOUSE_STATE mouse_state;
-    ALLEGRO_FONT * tittle_font;
     ALLEGRO_FONT * text_font;
+    ALLEGRO_FONT * small_text_font;
 
     /* Intializes random number generator */
     time_t t;
@@ -826,6 +1010,9 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
 
     bool launching_balls = false;
     bool new_row_created = true;
+    bool menu_opened = false;
+    bool help_opened = false;
+    bool sound_on = true;
     int balls_launched = 0;
 
     double time_last_ball_launch = 0;
@@ -835,11 +1022,13 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     must_init(al_init_acodec_addon(), "audio codecs");
     must_init(al_reserve_samples(16), "reserve samples");
 
-    tittle_font = load_font(DEBUG_FONT, TITTLE_FONT_SIZE);
-    log_test_ptr(tittle_font, "state_playing", "tittle_font");
+    init_game_info(g_info);
 
     text_font = load_font(JOY_STICK_FONT, TEXT_FONT_SIZE);
     log_test_ptr(text_font, "state_playing", "text_font");
+
+    small_text_font = load_font(JOY_STICK_FONT, 10);
+    log_test_ptr(small_text_font, "state_playing", "text_font");
 
     Balls *balls_array = create_balls_array(BALLS_ARRAY_SIZE);
     log_test_ptr(balls_array, "state_playing", "balls_array");
@@ -859,6 +1048,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     /* Create the first row */
     create_row(boxs_array, objs_array, g_info->level);
 
+    al_stop_samples();
     al_play_sample(s_top_gear, 1.0, 0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
 
     while(state == PLAYING)
@@ -871,78 +1061,108 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                     disp_pre_draw(*buffer);
                     al_clear_to_color(al_map_rgb(0,0,0));
 
-                    update_balls_and_boxs(balls_array, boxs_array, objs_array, g_info);
-
-                    /* Check if the all boxes hit the bottom, if so spawn a new row */
-                    if(!new_row_created && !launching_balls && balls_ready_for_launch(balls_array))
+                    if(!menu_opened)
                     {
-                        log_info("state_playing", "Ready for a new row");
-                        g_info->level++;
+                        update_balls_and_boxs(balls_array, boxs_array, objs_array, g_info);
 
-                        /* Spawn new balls */
-                        if(g_info->balls > balls_array->num_balls)
-                            for(int i = balls_array->num_balls; i < g_info->balls; i++)
-                                insert_ball(balls_array, balls_array->a_ball[0].x, balls_array->a_ball[0].y, BALL_SIZE, BALL_COLOR);
-
-                        /* A box hit the bottom, so GAME OVER */
-                        if(!push_boxs_down(boxs_array))
+                        /* Check if the all boxes hit the bottom, if so spawn a new row */
+                        if(!new_row_created && !launching_balls && balls_ready_for_launch(balls_array))
                         {
-                            #ifdef DEBUG
-                                log_info("state_playing", "Changing to GAME OVER state!");
-                            #endif
+                            log_info("state_playing", "Ready for a new row");
+                            g_info->level++;
 
-                            return GAME_OVER;
+                            /* Spawn new balls */
+                            if(g_info->balls > balls_array->num_balls)
+                                for(int i = balls_array->num_balls; i < g_info->balls; i++)
+                                    insert_ball(balls_array, balls_array->a_ball[0].x, balls_array->a_ball[0].y, BALL_SIZE, BALL_COLOR);
+
+                            /* A box hit the bottom, so GAME OVER */
+                            if(!push_boxs_down(boxs_array))
+                            {
+                                #ifdef DEBUG
+                                    log_info("state_playing", "Changing to GAME OVER state!");
+                                #endif
+
+                                return GAME_OVER;
+                            }
+
+                            push_objs_down(objs_array);
+
+                            create_row(boxs_array, objs_array, g_info->level);
+                            new_row_created = true;
+                            reset_first_ball_to_hit_bottom(balls_array);
                         }
 
-                        push_objs_down(objs_array);
-
-                        create_row(boxs_array, objs_array, g_info->level);
-                        new_row_created = true;
-                        reset_first_ball_to_hit_bottom(balls_array);
-                    }
-
-                    /* Launch the balls */
-                    if(launching_balls && !(time_last_ball_launch + TIME_BETWEEN_LAUNCHED_BALLS > al_get_time()))
-                    {
-                        /* Launched all balls */
-                        if(balls_launched == balls_array->num_balls)
-                            launching_balls = false;
-                        else
+                        /* Launch the balls */
+                        if(launching_balls && !(time_last_ball_launch + TIME_BETWEEN_LAUNCHED_BALLS > al_get_time()))
                         {
-                            launch_ball(balls_array, balls_launched, balls_array->a_ball[balls_launched].x, balls_array->a_ball[balls_launched].y, mouse_state.x/DISP_SCALE, mouse_state.y/DISP_SCALE, BALL_SPEED);
+                            /* Launched all balls */
+                            if(balls_launched == balls_array->num_balls)
+                                launching_balls = false;
+                            else
+                            {
+                                launch_ball(balls_array, balls_launched, balls_array->a_ball[balls_launched].x, balls_array->a_ball[balls_launched].y, mouse_state.x/DISP_SCALE, mouse_state.y/DISP_SCALE, BALL_SPEED);
 
-                            balls_array->a_ball[balls_launched].at_bottom = false;
-                            balls_launched++;
+                                balls_array->a_ball[balls_launched].at_bottom = false;
+                                balls_launched++;
 
-                            time_last_ball_launch = al_get_time();
+                                time_last_ball_launch = al_get_time();
+                            }
+                        }
+
+                        if(draw_launch_line)
+                        {
+                            al_get_mouse_state(&mouse_state);
+
+                            al_draw_line(balls_array->a_ball[0].x, balls_array->a_ball[0].y, (float)(mouse_state.x) / DISP_SCALE, (float)(mouse_state.y) / DISP_SCALE,  SECONDARY_COLOR, 2);
                         }
                     }
-
-                    if(draw_launch_line)
-                    {
-                        al_get_mouse_state(&mouse_state);
-
-                        al_draw_line(balls_array->a_ball[0].x, balls_array->a_ball[0].y, (float)(mouse_state.x) / DISP_SCALE, (float)(mouse_state.y) / DISP_SCALE,  SECONDARY_COLOR, 2);
-                    }
-
 
                     draw_hud(text_font, g_info);
                     draw_boxs(boxs_array, text_font);
                     draw_balls(balls_array);
                     draw_objects(objs_array);
 
+                    if(menu_opened)
+                        draw_menu(text_font, sound_on);
+
+                    if(help_opened)
+                        draw_help(small_text_font);
+
                     disp_post_draw(*disp, *buffer);
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                    al_get_mouse_state(&mouse_state);
+
+                    if(menu_opened)
+                    {
+                        if(button_home_pressed(&mouse_state))
+                            state = START;
+                        else if(button_sound_pressed(&mouse_state))
+                        {
+                            sound_on = !sound_on;
+                            if(sound_on)
+                                al_play_sample(s_top_gear, 1.0, 0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
+                            else
+                                al_stop_samples();
+                        }
+                    }
+
+
+                    if(button_menu_pressed(&mouse_state))
+                        menu_opened = !menu_opened;
+
 
                     /* Draw launch line */
-                    if(!launching_balls && balls_ready_for_launch(balls_array))
+                    if(is_mouse_inside_playable_area(&mouse_state) && !launching_balls && balls_ready_for_launch(balls_array))
                         draw_launch_line = true;
 
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
+                    al_get_mouse_state(&mouse_state);
 
-                    if(!launching_balls && balls_ready_for_launch(balls_array))
+                    /* Start launch balls */
+                    if(is_mouse_inside_playable_area(&mouse_state) && !launching_balls && balls_ready_for_launch(balls_array))
                     {
                         al_get_mouse_state(&mouse_state);
                         new_row_created = false;
@@ -950,7 +1170,10 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
                         balls_launched = 0;
                         draw_launch_line = false;
                     }
-                    
+                break;
+            case ALLEGRO_EVENT_KEY_DOWN:
+                    if(event.keyboard.keycode == ALLEGRO_KEY_F1)
+                        help_opened = !help_opened;
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                     state = ENDGAME;
@@ -965,7 +1188,7 @@ State_t state_playing(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_E
     destroy_boxs_array(boxs_array);
     destroy_objects_array(objs_array);
 
-    al_destroy_font(tittle_font);
     al_destroy_font(text_font);
+    al_destroy_font(small_text_font);
     return state;
 }

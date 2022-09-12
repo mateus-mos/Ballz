@@ -110,6 +110,7 @@ State_t state_start(ALLEGRO_DISPLAY **disp, ALLEGRO_BITMAP **buffer, ALLEGRO_EVE
     log_test_ptr(text_font, "state_start", "text_font");
 
 
+    al_stop_samples();
     ALLEGRO_SAMPLE *s_megalovania = al_load_sample("./Resources/Music/megalovania.wav");
     al_play_sample(s_megalovania, 1.0, 0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
 
